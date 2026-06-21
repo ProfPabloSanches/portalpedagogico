@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sorteador de Coordenadas</title>
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            --card-bg: rgba(255, 255, 255, 0.06);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --btn-bg: rgba(255, 255, 255, 0.04);
+            --danger: #ef4444;
+            --success: #34d399;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--bg-gradient);
+            color: var(--text-main);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Fundo matemático sutil unificado */
+        .math-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+            user-select: none;
+            opacity: 0.03;
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        .formula { position: absolute; white-space: nowrap; }
+
+        /* Área Principal (Esquerda) */
+        .main {
+            flex: 3;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-right: 1px solid var(--card-border);
+            padding: 40px;
+            z-index: 1;
+        }
+
+        h2 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(to right, #fff, var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 6px;
+        }
+
+        .sub {
+            color: var(--text-muted);
+            margin-bottom: 24px;
+            font-size: 0.95rem;
+        }
+
+        .info-box {
+            background: rgba(56, 189, 248, 0.06);
+            border: 1px solid rgba(56, 189, 248, 0.15);
+            padding: 12px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-size: 0.85rem;
+            color: #bae6fd;
+            text-align: center;
+            width: 100%;
+            max-width: 440px;
+        }
+
+        .config-panel {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 20px 24px;
+            border-radius: 16px;
+            margin-bottom: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 100%;
+            max-width: 440px;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2);
+        }
+
+        .axis-row {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .axis-title { 
+            font-size: 11px; 
+            font-weight: 700; 
+            color: var(--accent); 
+            text-transform: uppercase; 
+            letter-spacing: 1px;
+            text-align: center; /* Centralizado acima dos campos */
+            margin-bottom: 2px;
+        }
+
+        .input-sublabel {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+            display: block;
+        }
+        
+        .grid-inputs { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 16px; 
+        }
+
+        .input-container {
+            display: flex;
+            flex-direction: column;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 10px 14px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            color: white;
+            text-align: center;
+            font-family: inherit;
+            font-weight: 600;
+            transition: border-color 0.2s;
+        }
+        input[type="number"]:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        /* Janela de Sorteio Atual */
+        #resultado-atual {
+            font-size: 70px;
+            font-weight: 800;
+            margin: 10px 0 24px 0;
+            color: #ffffff;
+            text-shadow: 0 0 30px rgba(56, 189, 248, 0.2);
+            height: 140px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            width: 100%;
+            max-width: 440px;
+            border-radius: 24px;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        /* Controles e Botões */
+        .controls { display: flex; flex-direction: column; gap: 12px; align-items: center; width: 100%; }
+
+        .btn {
+            width: 100%;
+            padding: 16px 48px;
+            border: none;
+            border-radius: 14px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 1.1rem;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            text-align: center;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-draw { 
+            background: var(--accent); 
+            color: #0f172a; 
+            box-shadow: 0 8px 20px -4px rgba(56, 189, 248, 0.4);
+            max-width: 440px;
+        }
+        .btn-draw:hover { 
+            background: var(--accent-hover); 
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -4px rgba(14, 165, 233, 0.5);
+        }
+
+        .secondary-btn {
+            width: 100%;
+            max-width: 440px;
+            background: var(--btn-bg);
+            font-size: 0.85rem;
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.2s;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-main);
+            border: 1px solid var(--card-border);
+        }
+        .secondary-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-reset { 
+            color: var(--text-muted); 
+        }
+        .btn-reset:hover { background: rgba(239, 68, 68, 0.1); color: var(--danger); border-color: rgba(239, 68, 68, 0.3); }
+
+        /* Painel Lateral do Histórico (Direita Fixo) */
+        .sidebar {
+            flex: 1;
+            padding: 30px 20px;
+            overflow-y: auto;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-left: 1px solid var(--card-border);
+            z-index: 1;
+        }
+
+        .sidebar h3 {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            border-bottom: 1px solid var(--card-border);
+            padding-bottom: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .historico-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
+
+        /* Itens do Histórico */
+        .coord-item {
+            background: var(--btn-bg);
+            padding: 14px 18px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-main);
+            border: 1px solid var(--card-border);
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .badge {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Responsividade */
+        @media (max-width: 850px) {
+            body { flex-direction: column; overflow-y: auto; height: auto; }
+            .main { border-right: none; border-bottom: 1px solid var(--card-border); padding: 30px 16px; }
+            .sidebar { padding: 30px 16px; overflow-y: visible; border-left: none; }
+            #resultado-atual { font-size: 50px; height: 110px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="math-bg">
+        <div class="formula" style="top: 5%; left: 5%; font-size: 2rem;">f(x) = ax + b</div>
+        <div class="formula" style="top: 15%; right: 10%; font-size: 1.5rem;">P = (x, y)</div>
+        <div class="formula" style="bottom: 20%; left: 8%; font-size: 1.8rem;">d = √[(x₂-x₁)² + (y₂-y₁)²]</div>
+        <div class="formula" style="top: 40%; left: 2%; font-size: 2.5rem;">Q₁ | Q₂ | Q₃ | Q₄</div>
+        <div class="formula" style="bottom: 10%; right: 5%; font-size: 2.2rem;">y - y₀ = m(x - x₀)</div>
+    </div>
+
+    <div class="main">
+        <h2>Bingo: Coordenadas</h2>
+        <p class="sub">Defina os quadrantes e intervalos dos eixos</p>
+        
+        <div class="info-box">
+            Total de combinações possíveis: <strong id="total-possibilidades">0</strong>
+        </div>
+
+        <div class="config-panel">
+            <div class="axis-row">
+                <div class="axis-title">Abscissa (Eixo X)</div>
+                <div class="grid-inputs">
+                    <div class="input-container">
+                        <span class="input-sublabel">Valor Mínimo</span>
+                        <input type="number" id="minX" value="-5" oninput="atualizarPossibilidades()">
+                    </div>
+                    <div class="input-container">
+                        <span class="input-sublabel">Valor Máximo</span>
+                        <input type="number" id="maxX" value="5" oninput="atualizarPossibilidades()">
+                    </div>
+                </div>
+            </div>
+
+            <div class="axis-row">
+                <div class="axis-title">Ordenada (Eixo Y)</div>
+                <div class="grid-inputs">
+                    <div class="input-container">
+                        <span class="input-sublabel">Valor Mínimo</span>
+                        <input type="number" id="minY" value="-5" oninput="atualizarPossibilidades()">
+                    </div>
+                    <div class="input-container">
+                        <span class="input-sublabel">Valor Máximo</span>
+                        <input type="number" id="maxY" value="5" oninput="atualizarPossibilidades()">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button class="btn btn-draw" onclick="sortear()">SORTEAR NOVO PONTO</button>
+        
+        <div id="resultado-atual">-- , --</div>
+
+        <div class="controls">
+            <button class="secondary-btn btn-reset" onclick="limpar()">Limpar Histórico</button>
+            <div style="text-align: center; font-size: 0.85rem; color: var(--text-muted); margin: 4px 0 12px 0;">
+                Sorteados: <strong id="cont-sorteados" style="color: var(--accent);">0</strong>
+            </div>
+            <a href="https://profpablosanches.github.io/portalpedagogico/" class="secondary-btn">🏠 Voltar ao Início</a>
+        </div>
+    </div>
+
+    <div class="sidebar">
+        <h3>Pontos Sorteados</h3>
+        <div id="historico" class="historico-grid"></div>
+    </div>
+
+<script>
+    let coordenadasSorteadas = new Set();
+
+    function atualizarPossibilidades() {
+        const minX = parseInt(document.getElementById('minX').value) || 0;
+        const maxX = parseInt(document.getElementById('maxX').value) || 0;
+        const minY = parseInt(document.getElementById('minY').value) || 0;
+        const maxY = parseInt(document.getElementById('maxY').value) || 0;
+
+        if (maxX >= minX && maxY >= minY) {
+            const totalX = maxX - minX + 1;
+            const totalY = maxY - minY + 1;
+            const total = totalX * totalY;
+            document.getElementById('total-possibilidades').innerText = total.toLocaleString();
+            return total;
+        } else {
+            document.getElementById('total-possibilidades').innerText = "0 (Erro nos limites)";
+            return 0;
+        }
+    }
+
+    function sortear() {
+        const minX = parseInt(document.getElementById('minX').value);
+        const maxX = parseInt(document.getElementById('maxX').value);
+        const minY = parseInt(document.getElementById('minY').value);
+        const maxY = parseInt(document.getElementById('maxY').value);
+
+        const totalPossivel = atualizarPossibilidades();
+
+        if (totalPossivel === 0) {
+            alert("Verifique os limites fornecidos. O valor Máximo deve ser maior ou igual ao Mínimo.");
+            return;
+        }
+
+        if (coordenadasSorteadas.size >= totalPossivel) {
+            alert(`Limite atingido! Todas as ${totalPossivel} coordenadas possíveis neste intervalo já foram sorteadas.`);
+            return;
+        }
+
+        let x, y, chave;
+        do {
+            x = Math.floor(Math.random() * (maxX - minX + 1)) + minX;
+            y = Math.floor(Math.random() * (maxY - minY + 1)) + minY;
+            chave = `${x},${y}`;
+        } while (coordenadasSorteadas.has(chave));
+
+        coordenadasSorteadas.add(chave);
+        
+        document.getElementById('resultado-atual').innerText = `(${x}, ${y})`;
+        document.getElementById('cont-sorteados').innerText = coordenadasSorteadas.size;
+        
+        const item = document.createElement('div');
+        item.className = 'coord-item';
+        item.innerHTML = `<span>(${x}, ${y})</span> <span class="badge">#${coordenadasSorteadas.size}</span>`;
+        document.getElementById('historico').prepend(item);
+    }
+
+    function limpar() {
+        if(confirm("Deseja realmente limpar todo o histórico?")) {
+            coordenadasSorteadas.clear();
+            document.getElementById('historico').innerHTML = '';
+            document.getElementById('resultado-atual').innerText = '-- , --';
+            document.getElementById('cont-sorteados').innerText = '0';
+        }
+    }
+
+    // Inicialização da contagem de possibilidades
+    atualizarPossibilidades();
+</script>
+
+</body>
+</html>
