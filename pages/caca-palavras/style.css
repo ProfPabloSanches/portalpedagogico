@@ -1,0 +1,222 @@
+/* --- Configurações Gerais de Tela --- */
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background-color: #f5f7fa;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Painel de Entrada do Professor (Ocultado na Impressão) */
+.no-print-area {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+    width: 100%;
+    max-width: 650px;
+    text-align: center;
+}
+
+.no-print-area h2 { 
+    margin-top: 0; 
+    color: #2c3e50; 
+}
+
+.input-box {
+    width: 85%;
+    padding: 12px;
+    font-size: 16px;
+    border: 2px solid #3498db;
+    border-radius: 4px;
+    text-transform: uppercase;
+    margin-bottom: 15px;
+    outline: none;
+}
+
+.btn {
+    color: white;
+    padding: 12px 24px;
+    font-size: 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.2s;
+    margin: 5px;
+}
+
+.btn:hover { 
+    filter: brightness(0.9);
+}
+
+/* --- Estrutura da Folha de Impressão A4 --- */
+.a4-page {
+    background: white;
+    width: 210mm;
+    min-height: 297mm;
+    padding: 20mm;
+    box-sizing: border-box;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 30px; /* Espaço visual entre as páginas na tela */
+}
+
+.header {
+    width: 100%;
+    border-bottom: 2px solid #000;
+    padding-bottom: 10px;
+    margin-bottom: 25px;
+}
+
+.header h1 { 
+    margin: 0; 
+    font-size: 24px; 
+    text-align: center; 
+    letter-spacing: 1px; 
+}
+
+.student-info {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 15px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.instructions {
+    font-size: 14px;
+    color: #111;
+    margin-bottom: 20px;
+    line-height: 1.5;
+    text-align: justify;
+}
+
+/* Tabela de Referência A-Z */
+.alphabet-table-wrapper {
+    margin: 15px 0 35px 0;
+    width: 100%;
+}
+
+.alphabet-table-wrapper h3 {
+    font-size: 14px;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+
+.alphabet-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: center;
+}
+
+.alphabet-table th, .alphabet-table td {
+    border: 1px solid #000;
+    padding: 6px 2px;
+    font-size: 14px;
+}
+
+.alphabet-table th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+
+/* Espaço para a resposta da Frase Secreta */
+.phrase-answer-zone {
+    width: 100%;
+    margin-top: 45px;
+    border-top: 1px solid #000;
+    padding-top: 20px;
+}
+
+.phrase-answer-zone p {
+    font-weight: bold;
+    font-size: 16px;
+    margin-bottom: 15px;
+}
+
+/* Formatação inteligente para que as lacunas caibam na folha A4 com espaçamento simples */
+.letter-slots {
+    font-size: 22px;
+    line-height: 1; /* Configurado para espaçamento simples */
+    display: flex;
+    flex-wrap: wrap; 
+    gap: 15px 2px;  
+}
+
+/* Alinhamento visual das lacunas individuais */
+.letter-slots span {
+    display: inline-block;
+    white-space: nowrap; 
+}
+
+/* Estrutura das Questões Matemáticas */
+.questions-container {
+    width: 100%;
+    /* Força que este container comece obrigatoriamente em uma nova página A4 na impressão */
+    break-before: page;
+    page-break-before: always; 
+    margin-top: 20mm; /* Margem superior para simular o topo da folha na tela */
+}
+
+.questions-container h3 {
+    border-bottom: 1px solid #000;
+    padding-bottom: 5px;
+    margin-bottom: 20px;
+    font-size: 16px;
+}
+
+.questions-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 22px 40px;
+}
+
+.question-item {
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+}
+
+.blank-line {
+    flex-grow: 1;
+    border-bottom: 1px dashed #000;
+    margin-left: 8px;
+    height: 20px;
+}
+
+/* --- Regras para Impressão Física 🖨️ --- */
+@media print {
+    body { 
+        background-color: transparent; 
+        padding: 0; 
+        margin: 0;
+    }
+    .no-print-area { 
+        display: none !important; 
+    }
+    .a4-page { 
+        box-shadow: none; 
+        padding: 0; 
+        width: 100%; 
+        min-height: auto; 
+        margin-bottom: 0;
+    }
+    
+    /* Garante o comportamento correto de quebra de página de acordo com os padrões modernos e antigos */
+    .questions-container {
+        break-before: page !important;
+        page-break-before: always !important;
+        margin-top: 0; /* Reseta o espaçamento virtual da tela na impressão real */
+    }
+
+    .questions-grid { 
+        page-break-inside: avoid; 
+        break-inside: avoid;
+    }
+}
