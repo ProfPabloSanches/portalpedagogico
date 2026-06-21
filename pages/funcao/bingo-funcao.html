@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Sorteador de Imagens da Função (f(x))</title>
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            --card-bg: rgba(255, 255, 255, 0.06);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --btn-bg: rgba(255, 255, 255, 0.04);
+            --btn-hover: #38bdf8;
+            --disabled: rgba(255, 255, 255, 0.15);
+            --danger: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--bg-gradient);
+            color: var(--text-main);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Camada de fundo com fórmulas */
+        .math-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+            user-select: none;
+            opacity: 0.03;
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        .formula { position: absolute; white-space: nowrap; }
+
+        /* Área Principal */
+        .main {
+            flex: 3;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-right: 1px solid var(--card-border);
+            padding: 40px;
+            z-index: 1;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(to right, #fff, var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 6px;
+        }
+
+        .sub {
+            color: var(--text-muted);
+            margin-bottom: 24px;
+            font-size: 0.95rem;
+        }
+        
+        /* Painel de Configuração Reestruturado */
+        .config-panel {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 16px 24px;
+            border-radius: 16px;
+            margin-bottom: 30px;
+            display: flex;
+            gap: 24px;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2);
+        }
+
+        .config-group { display: flex; flex-direction: column; gap: 6px; }
+        .config-group label {
+            color: var(--accent);
+            font-weight: 700;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .config-inputs { display: flex; gap: 8px; align-items: center; }
+        .config-panel input { 
+            width: 60px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--card-border);
+            color: white; 
+            padding: 6px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+            font-family: inherit;
+            transition: border-color 0.2s;
+        }
+        .config-panel input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .function-display-input {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Display Operação Sorteada */
+        .display-operacao {
+            font-size: 72px;
+            font-weight: 800;
+            margin: 20px 0 40px 0;
+            color: #ffffff;
+            text-shadow: 0 0 30px rgba(56, 189, 248, 0.2);
+            height: 160px;
+            width: 100%;
+            max-width: 500px;
+            border-radius: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .display-subtitle {
+            font-size: 1rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 4px;
+            font-weight: 700;
+        }
+        
+        /* Lateral de Histórico */
+        .sidebar {
+            flex: 1;
+            padding: 30px 20px;
+            overflow-y: auto;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            z-index: 1;
+        }
+
+        .sidebar h2 {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            border-bottom: 1px solid var(--card-border);
+            padding-bottom: 12px;
+            text-align: center;
+        }
+
+        .historico-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
+        
+        .historico-item { 
+            background: var(--btn-bg);
+            padding: 16px 10px;
+            border-radius: 12px; 
+            text-align: center;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-main);
+            border: 1px solid var(--card-border);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            animation: fadeIn 0.3s ease;
+        }
+        .historico-item:hover {
+            background: var(--accent);
+            color: #0f172a;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px -3px rgba(56, 189, 248, 0.3);
+            border-color: transparent;
+        }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Botões e Controles */
+        .controls { display: flex; flex-direction: column; gap: 14px; align-items: center; width: 100%; }
+        
+        #btn-sortear { 
+            padding: 18px 48px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            background: var(--accent);
+            color: #0f172a; 
+            border: none;
+            border-radius: 14px;
+            font-weight: 700;
+            transition: all 0.2s ease;
+            box-shadow: 0 8px 20px -4px rgba(56, 189, 248, 0.4);
+            width: 100%;
+            max-width: 380px;
+        }
+        #btn-sortear:hover:not(:disabled) {
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -4px rgba(14, 165, 233, 0.5);
+        }
+        #btn-sortear:disabled { background: var(--disabled); color: var(--text-muted); box-shadow: none; cursor: not-allowed; opacity: 0.5; }
+        
+        .group-row { display: flex; gap: 12px; width: 100%; max-width: 380px; }
+
+        .secondary-btn {
+            flex: 1;
+            background: var(--btn-bg);
+            font-size: 0.85rem;
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.2s;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-main);
+            border: 1px solid var(--card-border);
+            text-align: center;
+        }
+        .secondary-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .gerador-btn { color: #34d399; border-color: rgba(52, 211, 153, 0.2); }
+        .gerador-btn:hover { background: rgba(52, 211, 153, 0.1); color: #34d399; border-color: rgba(52, 211, 153, 0.4); }
+
+        .reset {
+            color: var(--text-muted);
+            border-color: var(--card-border);
+            width: 100%;
+            max-width: 380px;
+            font-weight: 500;
+        }
+        .reset:hover { background: rgba(239, 68, 68, 0.1); color: var(--danger); border-color: rgba(239, 68, 68, 0.3); }
+        
+        .home-btn {
+            width: 100%;
+            max-width: 380px;
+            color: var(--text-muted);
+            border-color: transparent;
+            font-weight: 500;
+        }
+
+        /* Modais */
+        .modal-overlay { 
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            justify-content: center; align-items: center; z-index: 1000;
+            opacity: 0; transition: opacity 0.3s ease;
+        }
+        .modal-overlay.show { display: flex; opacity: 1; }
+        
+        .modal-content { 
+            background: rgba(30, 27, 75, 0.95);
+            padding: 40px 32px;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+            width: 90%;
+            max-width: 460px;
+            transform: scale(0.96);
+            transition: transform 0.3s ease;
+        }
+        .modal-overlay.show .modal-content { transform: scale(1); }
+
+        .modal-op { font-size: 32px; color: var(--text-muted); font-weight: 600; margin-bottom: 5px; }
+        .modal-calc { font-size: 42px; color: var(--text-main); font-weight: 700; margin-bottom: 20px; }
+        .modal-res { font-size: 84px; color: var(--accent); font-weight: 800; text-shadow: 0 0 20px rgba(56, 189, 248, 0.3); }
+        
+        .instr-text {
+            text-align: left;
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin: 20px 0;
+            font-size: 0.95rem;
+        }
+
+        @media (max-width: 850px) {
+            body { flex-direction: column; overflow-y: auto; height: auto; }
+            .main { border-right: none; border-bottom: 1px solid var(--card-border); padding: 30px 16px; }
+            .sidebar { padding: 30px 16px; overflow-y: visible; }
+            .display-operacao { font-size: 54px; height: 130px; }
+            .config-panel { flex-direction: column; gap: 14px; width: 100%; max-width: 380px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="math-bg">
+        <div class="formula" style="top: 5%; left: 5%; font-size: 2rem;">f(x) = ax + b</div>
+        <div class="formula" style="top: 15%; right: 10%; font-size: 1.5rem;">y = mx + n</div>
+        <div class="formula" style="bottom: 20%; left: 8%; font-size: 1.8rem;">Δy / Δx = a</div>
+        <div class="formula" style="top: 40%; left: 2%; font-size: 2.5rem;">f(0) = b</div>
+    </div>
+
+    <div class="main">
+        <h1>SORTEADOR DE DOMÍNIO (X)</h1>
+        <p class="sub">Defina a função afim e sorteie os valores de x para encontrar a imagem f(x)</p>
+
+        <div class="config-panel">
+            <div class="config-group">
+                <label>Defina a Função</label>
+                <div class="config-inputs function-display-input">
+                    <span>f(x) =</span>
+                    <input type="number" id="func-a" value="2" title="Coeficiente a (angular)">
+                    <span>x +</span>
+                    <input type="number" id="func-b" value="3" title="Coeficiente b (linear)">
+                </div>
+            </div>
+            <div class="config-group">
+                <label>Intervalo de X (Domínio)</label>
+                <div class="config-inputs">
+                    <input type="number" id="x-min" value="1" title="X Mínimo">
+                    <span>até</span>
+                    <input type="number" id="x-max" value="15" title="X Máximo">
+                </div>
+            </div>
+        </div>
+        
+        <div id="operacao-atual" class="display-operacao">
+            <div class="display-subtitle" id="display-label">Pronto para começar</div>
+            <div id="display-valor">?</div>
+        </div>
+        
+        <div class="controls">
+            <button id="btn-sortear" onclick="sortear()">SORTEAR PRÓXIMO X</button>
+            
+            <div class="group-row">
+                <a href="gerador-valores.html" class="secondary-btn gerador-btn">🖨️ Cartelas</a>
+                <button class="secondary-btn" onclick="abrirInstrucoes()">Instruções</button>
+            </div>
+            
+            <button class="secondary-btn reset" onclick="zerarSorteador()">Reiniciar nova estrutura</button>
+            
+            <a href="https://profpablosanches.github.io/portalpedagogico/" class="secondary-btn home-btn">🏠 Voltar ao Início</a>
+        </div>
+    </div>
+
+    <div class="sidebar">
+        <h2>HISTÓRICO DE X (Clique)</h2>
+        <div id="historico" class="historico-grid"></div>
+    </div>
+
+    <div id="modal-res-container" class="modal-overlay" onclick="fecharModal('modal-res-container')">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div id="modal-op" class="modal-op"></div>
+            <div id="modal-calc" class="modal-calc"></div>
+            <div style="color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; margin-bottom: 5px;">Imagem Resultante:</div>
+            <div id="modal-res" class="modal-res"></div>
+            <button class="close-modal" onclick="fecharModal('modal-res-container')">Fechar Janela</button>
+        </div>
+    </div>
+
+    <div id="modal-instr" class="modal-overlay" onclick="fecharModal('modal-instr')">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <h2 style="color: var(--accent); font-size: 1.4rem; text-align: left; font-weight: 800;">Instruções do Jogo</h2>
+            <div class="instr-text" id="texto-instrucoes">
+                <p style="margin-bottom: 8px;">1. Insira os valores de **a** e **b** para montar a lei da função que a turma vai trabalhar.</p>
+                <p style="margin-bottom: 8px;">2. Determine os limites mínimo e máximo do valor de **X** (Domínio).</p>
+                <p style="margin-bottom: 8px;">3. Clique em "Reiniciar" para salvar a função e estruturar o sorteio.</p>
+                <p style="margin-bottom: 8px;">4. Colete ou gere cartelas contendo os **resultados das imagens f(x)** gerados por esse intervalo.</p>
+                <p style="margin-bottom: 8px;">5. Sorteie o valor de X. Os alunos aplicam o X na fórmula exposta e marcam o resultado numérico encontrado.</p>
+            </div>
+            <button class="close-modal" onclick="fecharModal('modal-instr')">Entendido</button>
+        </div>
+    </div>
+
+    <script>
+        let xPool = [];
+        let coefA = 2;
+        let coefB = 3;
+
+        function inicializar() {
+            coefA = parseInt(document.getElementById('func-a').value) || 0;
+            coefB = parseInt(document.getElementById('func-b').value) || 0;
+            const xMin = parseInt(document.getElementById('x-min').value);
+            const xMax = parseInt(document.getElementById('x-max').value);
+
+            xPool = [];
+            
+            // Cria a lista contendo exclusivamente os valores do domínio (x)
+            for (let x = xMin; x <= xMax; x++) {
+                xPool.push(x);
+            }
+            embaralhar();
+        }
+
+        function embaralhar() {
+            xPool.sort(() => Math.random() - 0.5);
+        }
+
+        function sortear() {
+            if (xPool.length === 0) {
+                document.getElementById('display-label').innerText = "Fim do Jogo";
+                document.getElementById('display-valor').innerText = "FIM";
+                document.getElementById('display-valor').style.fontSize = '54px';
+                document.getElementById('btn-sortear').disabled = true;
+                return;
+            }
+
+            const xSorteado = xPool.pop();
+            
+            // Atualiza display principal
+            document.getElementById('display-label').innerText = "Valor Sorteado";
+            document.getElementById('display-valor').innerText = `x = ${xSorteado}`;
+            document.getElementById('display-valor').style.fontSize = '72px';
+
+            // Dados calculados em tempo real com base no estado atual da função
+            const calcTexto = `f(${xSorteado}) = ${coefA} · (${xSorteado}) ${coefB >= 0 ? '+ ' + coefB : '- ' + Math.abs(coefB)}`;
+            const valorFinal = (coefA * xSorteado) + coefB;
+
+            // Insere no histórico lateral
+            const historicoDiv = document.getElementById('historico');
+            const novoItem = document.createElement('div');
+            novoItem.className = 'historico-item';
+            novoItem.innerText = `x = ${xSorteado}`;
+            
+            // Vincula o evento para abrir o modal com a resposta estruturada
+            novoItem.onclick = () => mostrarResultado(xSorteado, calcTexto, valorFinal.toLocaleString('pt-BR'));
+            historicoDiv.prepend(novoItem);
+        }
+
+        function mostrarResultado(xValor, calcText, resText) {
+            // Formata esteticamente o cabeçalho do modal baseado na lei atual
+            let termoA = coefA === 1 ? "x" : (coefA === -1 ? "-x" : coefA + "x");
+            let termoB = coefB > 0 ? " + " + coefB : (coefB < 0 ? " - " + Math.abs(coefB) : "");
+            
+            document.getElementById('modal-op').innerText = `f(x) = ${termoA}${termoB}  [para x = ${xValor}]`;
+            document.getElementById('modal-calc').innerText = calcText;
+            document.getElementById('modal-res').innerText = resText;
+            document.getElementById('modal-res-container').classList.add('show');
+        }
+
+        function abrirInstrucoes() {
+            document.getElementById('modal-instr').classList.add('show');
+        }
+
+        function fecharModal(id) {
+            document.getElementById(id).classList.remove('show');
+        }
+
+        function zerarSorteador() {
+            if (confirm("Deseja aplicar as novas configurações e reiniciar o bingo?")) {
+                fecharModal('modal-res-container');
+                document.getElementById('historico').innerHTML = "";
+                document.getElementById('display-label').innerText = "Pronto para começar";
+                document.getElementById('display-valor').innerHTML = "?";
+                document.getElementById('display-valor').style.fontSize = '72px';
+                document.getElementById('btn-sortear').disabled = false;
+                inicializar();
+            }
+        }
+
+        // Execução ao carregar a página
+        inicializar();
+    </script>
+</body>
+</html>
