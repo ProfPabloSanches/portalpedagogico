@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sorteador de Raízes</title>
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            --card-bg: rgba(255, 255, 255, 0.06);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --btn-bg: rgba(255, 255, 255, 0.04);
+            --disabled: rgba(255, 255, 255, 0.15);
+            --danger: #ef4444;
+            --success: #34d399;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--bg-gradient);
+            color: var(--text-main);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Fundo matemático sutil unificado */
+        .math-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+            user-select: none;
+            opacity: 0.03;
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        .formula { position: absolute; white-space: nowrap; }
+
+        /* Área Principal (Esquerda) */
+        .main {
+            flex: 3;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-right: 1px solid var(--card-border);
+            padding: 40px;
+            z-index: 1;
+        }
+
+        h2 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(to right, #fff, var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 6px;
+        }
+
+        .sub {
+            color: var(--text-muted);
+            margin-bottom: 24px;
+            font-size: 0.95rem;
+        }
+
+        .config-panel {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 16px 24px;
+            border-radius: 16px;
+            margin-bottom: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+            max-width: 440px;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2);
+        }
+
+        .config-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .config-group { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 6px;
+            flex: 1;
+        }
+
+        label { 
+            font-size: 11px; 
+            font-weight: 700; 
+            color: var(--accent); 
+            text-transform: uppercase; 
+            letter-spacing: 1px;
+        }
+        
+        .config-inputs { display: flex; gap: 8px; }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 8px 12px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            color: white;
+            text-align: center;
+            font-family: inherit;
+            font-weight: 600;
+            transition: border-color 0.2s;
+        }
+        input[type="number"]:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-weight: 600;
+            user-select: none;
+            margin-top: 4px;
+        }
+        .checkbox-group input {
+            cursor: pointer;
+            accent-color: var(--accent);
+        }
+
+        /* Janela de Sorteio Atual */
+        #resultado-preview {
+            font-size: 110px;
+            font-weight: 800;
+            margin: 20px 0 40px 0;
+            color: #ffffff;
+            text-shadow: 0 0 30px rgba(56, 189, 248, 0.2);
+            height: 160px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            width: 100%;
+            max-width: 440px;
+            border-radius: 24px;
+        }
+
+        /* Controles e Botões */
+        .controls { display: flex; flex-direction: column; gap: 14px; align-items: center; width: 100%; }
+
+        .btn {
+            width: 100%;
+            padding: 18px 48px;
+            border: none;
+            border-radius: 14px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 1.1rem;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            text-align: center;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-draw { 
+            background: var(--accent); 
+            color: #0f172a; 
+            box-shadow: 0 8px 20px -4px rgba(56, 189, 248, 0.4);
+            max-width: 440px;
+        }
+        .btn-draw:hover { 
+            background: var(--accent-hover); 
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -4px rgba(14, 165, 233, 0.5);
+        }
+        
+        .group-row { display: flex; gap: 12px; width: 100%; max-width: 440px; }
+
+        .secondary-btn {
+            flex: 1;
+            background: var(--btn-bg);
+            font-size: 0.85rem;
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.2s;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-main);
+            border: 1px solid var(--card-border);
+            text-align: center;
+        }
+        .secondary-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-reset { 
+            color: var(--text-muted); 
+            border-color: var(--card-border);
+            width: 100%;
+            max-width: 440px;
+            font-weight: 500;
+        }
+        .btn-reset:hover { background: rgba(239, 68, 68, 0.1); color: var(--danger); border-color: rgba(239, 68, 68, 0.3); }
+        
+        .btn-home { 
+            width: 100%;
+            max-width: 440px;
+            color: var(--text-muted); 
+            border-color: transparent;
+            font-weight: 500;
+        }
+        .btn-home:hover { color: white; }
+
+        /* Painel Lateral do Histórico (Direita Fixo) */
+        .sidebar {
+            flex: 1;
+            padding: 30px 20px;
+            overflow-y: auto;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-left: 1px solid var(--card-border);
+            z-index: 1;
+        }
+
+        .sidebar h3 {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            border-bottom: 1px solid var(--card-border);
+            padding-bottom: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .historico-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+        /* ITENS DO HISTÓRICO lateral */
+        .history-item {
+            background: var(--btn-bg);
+            padding: 16px 10px;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-main);
+            border: 1px solid var(--card-border);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .history-item:hover {
+            background: var(--accent);
+            color: #0f172a;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px -3px rgba(56, 189, 248, 0.3);
+            border-color: transparent;
+        }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* MODAL GIGANTE DE EXIBIÇÃO */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.6); 
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 1000;
+            justify-content: center; align-items: center;
+            opacity: 0; transition: opacity 0.3s ease;
+        }
+        .modal-overlay.show { display: flex; opacity: 1; }
+
+        .modal-content { 
+            background: rgba(30, 27, 75, 0.95);
+            padding: 40px 32px;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+            width: 90%;
+            max-width: 460px;
+            transform: scale(0.96);
+            transition: transform 0.3s ease;
+        }
+        .modal-overlay.show .modal-content { transform: scale(1); }
+
+        #modal-texto { 
+            font-size: 110px; 
+            font-weight: 900; 
+            color: white; 
+            margin: 0; 
+            line-height: 1; 
+        }
+        #modal-valor { 
+            font-size: 90px; 
+            color: var(--success); 
+            font-weight: 800; 
+            text-shadow: 0 0 30px rgba(52, 211, 153, 0.3);
+            margin-bottom: 10px;
+        }
+        .btn-close-modal { 
+            margin-top: 20px; 
+            padding: 12px 24px; 
+            font-size: 0.95rem; 
+            background: var(--btn-bg); 
+            color: white; 
+            border-radius: 10px; 
+            border: 1px solid var(--card-border); 
+            cursor: pointer;
+            width: 100%;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .btn-close-modal:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
+
+        /* Responsividade */
+        @media (max-width: 850px) {
+            body { flex-direction: column; overflow-y: auto; height: auto; }
+            .main { border-right: none; border-bottom: 1px solid var(--card-border); padding: 30px 16px; }
+            .sidebar { padding: 30px 16px; overflow-y: visible; border-left: none; }
+            #resultado-preview { font-size: 80px; height: 130px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="math-bg">
+        <div class="formula" style="top: 5%; left: 5%; font-size: 2rem;">a² + b² = c²</div>
+        <div class="formula" style="top: 15%; right: 10%; font-size: 1.5rem;">E = mc²</div>
+        <div class="formula" style="bottom: 20%; left: 8%; font-size: 1.8rem;">x = [-b ± √(b² - 4ac)] / 2a</div>
+        <div class="formula" style="top: 40%; left: 2%; font-size: 2.5rem;">π ≈ 3,14159</div>
+        <div class="formula" style="bottom: 10%; right: 5%; font-size: 2.2rem;">e^{iπ} + 1 = 0</div>
+    </div>
+
+    <div class="main">
+        <h2>Bingo: Raizes</h2>
+        <p class="sub">Configure o intervalo e sorteie os radicais</p>
+        
+        <div class="config-panel">
+            <div class="config-row">
+                <div class="config-group">
+                    <label>Radicando Mínimo</label>
+                    <input type="number" id="minVal" value="1">
+                </div>
+                <div class="config-group">
+                    <label>Radicando Máximo</label>
+                    <input type="number" id="maxVal" value="100">
+                </div>
+            </div>
+            
+            <label class="checkbox-group">
+                <input type="checkbox" id="apenasExatas" checked>
+                Apenas raízes exatas
+            </label>
+        </div>
+
+        <button class="btn btn-draw" onclick="sortear()">SORTEAR UMA RAIZ</button>
+        
+        <div id="resultado-preview">?</div>
+
+        <div class="controls">
+            <button class="secondary-btn btn-reset" onclick="reiniciar()">Reiniciar Sorteador</button>
+            <a href="index.html" class="secondary-btn btn-home">🏠 Voltar ao Início</a>
+        </div>
+    </div>
+
+    <div class="sidebar">
+        <h3>Histórico (Clique para ver)</h3>
+        <div id="historico" class="historico-grid"></div>
+    </div>
+
+    <div id="modal-resultado" class="modal-overlay" onclick="fecharModal()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div id="modal-texto">√--</div>
+            <div style="color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">resultado:</div>
+            <div id="modal-valor">= --</div>
+            <button class="btn-close-modal" onclick="fecharModal()">Fechar Janela</button>
+        </div>
+    </div>
+
+    <script>
+        let sorteadas = new Set();
+
+        function sortear() {
+            const min = parseInt(document.getElementById('minVal').value);
+            const max = parseInt(document.getElementById('maxVal').value);
+            const apenasExatas = document.getElementById('apenasExatas').checked;
+
+            let possiveis = [];
+            for (let i = min; i <= max; i++) {
+                if (apenasExatas) {
+                    if (Math.sqrt(i) % 1 === 0) possiveis.push(i);
+                } else {
+                    possiveis.push(i);
+                }
+            }
+
+            let disponiveis = possiveis.filter(n => !sorteadas.has(n));
+
+            if (disponiveis.length === 0) {
+                alert("Todas as raízes possíveis dentro deste intervalo já foram sorteadas!");
+                return;
+            }
+
+            const sorteado = disponiveis[Math.floor(Math.random() * disponiveis.length)];
+            sorteadas.add(sorteado);
+
+            document.getElementById('resultado-preview').innerText = `√${sorteado}`;
+            
+            adicionarAoHistorico(sorteado);
+        }
+
+        function adicionarAoHistorico(num) {
+            const lista = document.getElementById('historico');
+            const item = document.createElement('div');
+            item.className = 'history-item';
+            
+            const res = Math.sqrt(num);
+            const formatado = Number.isInteger(res) ? res : res.toFixed(2);
+            
+            item.innerHTML = `√${num}`;
+            
+            // Abre o modal ao clicar no item correspondente
+            item.onclick = (e) => {
+                e.stopPropagation();
+                exibirGrande(num, formatado);
+            };
+            
+            lista.prepend(item);
+        }
+
+        function exibirGrande(num, resultado) {
+            document.getElementById('modal-texto').innerText = `√${num}`;
+            document.getElementById('modal-valor').innerText = `= ${resultado}`;
+            document.getElementById('modal-resultado').classList.add('show');
+        }
+
+        function fecharModal() {
+            document.getElementById('modal-resultado').classList.remove('show');
+        }
+
+        function reiniciar() {
+            if (confirm("Deseja limpar o histórico e reiniciar o bingo?")) {
+                sorteadas.clear();
+                document.getElementById('resultado-preview').innerText = "?";
+                document.getElementById('historico').innerHTML = "";
+            }
+        }
+
+        // Fecha a visualização ao pressionar ESC
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') fecharModal();
+        });
+    </script>
+</body>
+</html>
