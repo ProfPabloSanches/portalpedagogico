@@ -1,0 +1,165 @@
+/* --- ESTILOS PARA TELA (WEB) --- */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #1a1a24;
+    color: #fff;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+h1 { color: #f1c40f; margin-bottom: 5px; text-align: center; }
+p { color: #bdc3c7; text-align: center; max-width: 600px; margin: 0 auto 20px auto; }
+.controls { margin-bottom: 25px; text-align: center; }
+
+button, .custom-select {
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 30px;
+    border: none;
+    margin: 5px;
+    box-sizing: border-box;
+    vertical-align: middle;
+}
+
+button { background-color: #9b59b6; color: white; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 15px rgba(155, 89, 182, 0.4); }
+button:hover { background-color: #8e44ad; transform: translateY(-2px); }
+.btn-home { background-color: #4f5d75; box-shadow: 0 4px 15px rgba(79, 93, 117, 0.4); }
+.btn-home:hover { background-color: #3d485c; }
+.btn-print { background-color: #2980b9; box-shadow: 0 4px 15px rgba(41, 128, 185, 0.4); }
+.custom-select { background-color: #34495e; color: white; cursor: pointer; outline: none; }
+
+.board-container {
+    width: 100%;
+    max-width: 1000px; 
+    display: flex;
+    flex-direction: column; /* Na tela, fica um embaixo do outro */
+    align-items: center;
+    gap: 30px;
+}
+
+.board {
+    display: grid;
+    grid-template-columns: repeat(10, 58px);
+    grid-template-rows: repeat(10, 58px);
+    gap: 8px;
+    padding: 15px;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+.cell {
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+    cursor: pointer;
+    user-select: none;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+    border: 2px solid rgba(255,255,255,0.2);
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    box-sizing: border-box;
+}
+
+.cell.white-mode { color: #000 !important; text-shadow: none !important; border: 2px solid #34495e !important; }
+.cell .arrow { font-size: 12px; margin-top: -1px; opacity: 0.9; }
+.cell.special { font-size: 9px; text-transform: uppercase; letter-spacing: 1px; border: 2px dashed #fff; text-align: center; }
+.cell.active { filter: grayscale(80%) brightness(50%); border-color: #000; }
+
+/* Quadro de Instruções (Estilo Web) */
+.instructions-box {
+    background-color: #2c3e50;
+    padding: 20px 30px;
+    border-radius: 15px;
+    max-width: 600px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    border-left: 5px solid #f1c40f;
+}
+.instructions-box h2 { color: #f1c40f; margin-top: 0; font-size: 22px; }
+.instructions-box h3 { color: #ecf0f1; margin-bottom: 10px; font-size: 18px; }
+.instructions-box p { text-align: left; margin: 8px 0; color: #ecf0f1; }
+.instructions-box ul { margin: 0; padding-left: 20px; color: #bdc3c7; }
+.instructions-box li { margin-bottom: 6px; }
+
+/* --- 🖨️ SUPORTE DE IMPRESSÃO TRAVADO PARA 1 FOLHA A4 --- */
+@media print {
+    @page { 
+        size: A4 portrait; 
+        margin: 10mm 10mm 10mm 10mm; 
+    }
+    
+    html, body { 
+        height: 100%; 
+        overflow: hidden; 
+        background-color: #ffffff !important; 
+        color: #000000 !important; 
+        margin: 0 !important; 
+        padding: 0 !important; 
+    }
+    
+    .no-print { display: none !important; }
+    
+    .board-container { 
+        width: 100%; 
+        height: 100%; 
+        display: flex; 
+        flex-direction: column; /* Mantém empilhado verticalmente */
+        justify-content: space-between; /* Afasta o tabuleiro das instruções para organizar o espaço */
+        align-items: center; 
+        padding: 5mm 0;
+        box-sizing: border-box; 
+    }
+    
+    .board { 
+        grid-template-columns: repeat(10, 16.5mm); 
+        grid-template-rows: repeat(10, 16.5mm); 
+        gap: 1.5mm; 
+        background-color: transparent !important; 
+        box-shadow: none !important; 
+        padding: 0; 
+        margin: 0 auto; 
+    }
+    
+    .cell { 
+        width: 16.5mm !important; 
+        height: 16.5mm !important; 
+        font-size: 13pt !important; 
+        text-shadow: none !important; 
+        border: 1.5pt solid #000 !important; 
+        box-shadow: none !important; 
+    }
+    
+    .cell .arrow { font-size: 10pt !important; }
+    .cell.special { font-size: 8pt !important; }
+    .cell:not(.white-mode) { color: #000 !important; }
+
+    /* Ajuste elegante das instruções para o papel */
+    .instructions-box {
+        background-color: #ffffff !important;
+        border: 1.5pt solid #000000 !important;
+        border-left: 6pt solid #000000 !important;
+        color: #000000 !important;
+        box-shadow: none !important;
+        width: 165mm;
+        padding: 4mm 6mm;
+        margin-top: 4mm;
+        border-radius: 5px;
+    }
+    .instructions-box h2 { color: #000000 !important; font-size: 14pt; margin-bottom: 2mm; }
+    .instructions-box h3 { color: #000000 !important; font-size: 11pt; margin-top: 2mm; }
+    .instructions-box p { color: #000000 !important; font-size: 10pt; }
+    .instructions-box ul { color: #000000 !important; }
+    .instructions-box li { font-size: 10pt; }
+}
