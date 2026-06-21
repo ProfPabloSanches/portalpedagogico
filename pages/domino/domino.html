@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dominó Matemático</title>
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            --card-bg: rgba(255, 255, 255, 0.06);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #6366f1;
+            --accent-hover: #4f46e5;
+            --success: #2ecc71;
+            --success-hover: #27ae60;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--bg-gradient);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            max-width: 800px;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(to right, #fff, var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        p {
+            color: var(--text-muted);
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+            align-items: center;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            padding: 16px 24px;
+            border-radius: 14px;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2);
+        }
+
+        .select-nivel {
+            padding: 0 16px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 8px;
+            border: 1px solid #e67e22;
+            background-color: rgba(0, 0, 0, 0.2);
+            color: #e67e22;
+            outline: none;
+            cursor: pointer;
+            height: 44px;
+            transition: all 0.2s;
+        }
+
+        .select-nivel:focus {
+            box-shadow: 0 0 0 2px rgba(230, 126, 34, 0.3);
+        }
+
+        button, .btn-link {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 0 24px;
+            font-size: 14px;
+            font-weight: 700;
+            border-radius: 8px;
+            cursor: pointer;
+            height: 44px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        button:hover, .btn-link:hover {
+            background-color: var(--accent-hover);
+            transform: translateY(-2px);
+        }
+
+        button.secondary {
+            background-color: var(--success);
+            color: #0f172a;
+        }
+
+        button.secondary:hover {
+            background-color: var(--success-hover);
+        }
+
+        .btn-home {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: var(--text-muted);
+            border: 1px solid var(--card-border);
+        }
+
+        .btn-home:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--text-main);
+        }
+
+        .grid-pecas {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            width: 100%;
+            max-width: 1200px;
+            justify-items: center;
+        }
+
+        .domino-card {
+            background: rgba(15, 23, 42, 0.6);
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            border: 1px solid var(--card-border);
+            backdrop-filter: blur(8px);
+            transition: transform 0.2s ease;
+        }
+
+        .domino-card:hover {
+            transform: scale(1.02);
+        }
+
+        .num-peca {
+            font-size: 11px;
+            color: var(--accent);
+            margin-bottom: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        svg {
+            width: 260px;
+            height: 100px;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+        }
+
+        .borda-domino {
+            fill: #ffffff;
+            stroke: #1e293b;
+            stroke-width: 3;
+            rx: 12;
+            ry: 12;
+        }
+
+        .linha-divisoria {
+            stroke: #64748b;
+            stroke-width: 2;
+            stroke-dasharray: 4 4;
+        }
+
+        .texto-domino {
+            font-size: 18px;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: 800;
+            fill: #0f172a;
+            text-anchor: middle;
+            dominant-baseline: central;
+        }
+
+        .texto-container {
+            font-size: 18px;
+        }
+
+        .texto-longo {
+            font-size: 13.5px;
+            font-weight: 900;
+        }
+
+        /* AJUSTE FINO DE IMPRESSÃO - FORMATADO EM ALTA QUALIDADE */
+        @media print {
+            @page { size: A4 portrait; margin: 15mm; }
+            
+            .controls, .header, .num-peca {
+                display: none !important;
+            }
+            
+            body {
+                background: white !important;
+                color: black !important;
+                padding: 0 !important;
+                display: block !important;
+            }
+            
+            .grid-pecas {
+                display: flex !important;
+                flex-wrap: wrap !important;
+                justify-content: center !important;
+                gap: 15px !important;
+                max-width: 100% !important;
+            }
+            
+            .domino-card {
+                box-shadow: none !important;
+                border: none !important;
+                background: transparent !important;
+                display: inline-block !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                margin: 5px !important;
+                padding: 0 !important;
+            }
+
+            svg {
+                filter: none !important;
+            }
+
+            .borda-domino {
+                fill: #ffffff !important;
+                stroke: #000000 !important;
+                stroke-width: 3.5px !important;
+            }
+
+            .linha-divisoria {
+                stroke: #000000 !important;
+                stroke-width: 2px !important;
+            }
+
+            .texto-domino {
+                fill: #000000 !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>Dominó Matemático (28 Peças)</h1>
+    <p>Lógica clássica combinatória de Duplo 0 a Duplo 6 utilizando níveis de dificuldade</p>
+</div>
+
+<div class="controls">
+    <a href="https://profpablosanches.github.io/portalpedagogico/" class="btn-link btn-home">Página Inicial</a>
+    <select id="nivel-dificuldade" class="select-nivel" onchange="gerarJogoDominoReal()">
+        <option value="facil">Nível: Fácil</option>
+        <option value="medio">Nível: Médio</option>
+        <option value="dificil" selected>Nível: Difícil</option>
+    </select>
+    <button onclick="gerarJogoDominoReal()">Gerar Novo Jogo</button>
+    <button class="secondary" onclick="window.print()">Imprimir / Salvar PDF</button>
+</div>
+
+<div id="tabuleiro" class="grid-pecas"></div>
+
+<script>
+    const bancoNiveis = {
+        facil: {
+            0: { operacoes: ["2-2", "0+0", "1-1"], resultado: "0" },
+            1: { operacoes: ["1+0", "3-2", "2-1"], resultado: "1" },
+            2: { operacoes: ["1+1", "4-2", "2+0"], resultado: "2" },
+            3: { operacoes: ["2+1", "5-2", "3+0"], resultado: "3" },
+            4: { operacoes: ["2+2", "6-2", "4+0"], resultado: "4" },
+            5: { operacoes: ["3+2", "7-2", "5+0"], resultado: "5" },
+            6: { operacoes: ["4+2", "8-2", "3+3"], resultado: "6" }
+        },
+        medio: {
+            0: { operacoes: ["12-12", "5-5", "0×4"], resultado: "0" },
+            1: { operacoes: ["9-8", "5÷5", "10-9"], resultado: "1" },
+            2: { operacoes: ["14÷7", "8-6", "10÷5"], resultado: "2" },
+            3: { operacoes: ["9÷3", "12-9", "15÷5"], resultado: "3" },
+            4: { operacoes: ["2×2", "16÷4", "11-7"], resultado: "4" },
+            5: { operacoes: ["2+3", "20÷4", "14-9"], resultado: "5" },
+            6: { operacoes: ["3×2", "12÷2", "15-9"], resultado: "6" }
+        },
+        dificil: {
+            0: { operacoes: ["384-384", "0×745", "1542-1542"], resultado: "0" },
+            1: { operacoes: ["435÷435", "523-522", "1250÷1250"], resultado: "1" },
+            2: { operacoes: ["384÷192", "415-413", "1056÷528"], resultado: "2" },
+            3: { operacoes: ["432÷144", "854-851", "1215÷405"], resultado: "3" },
+            4: { operacoes: ["1024-1020", "576÷144", "248-244"], resultado: "4" },
+            5: { operacoes: ["625÷125", "1005-1000", "1375÷275"], resultado: "5" },
+            6: { operacoes: ["864÷144", "1296÷216", "2304÷384"], resultado: "6" }
+        }
+    };
+
+    function obterTextoVisual(valorNumerico, nivel) {
+        const dados = bancoNiveis[nivel][valorNumerico];
+        if (Math.random() > 0.5) {
+            const listaOps = dados.operacoes;
+            return listaOps[Math.floor(Math.random() * listaOps.length)];
+        } else {
+            return dados.resultado;
+        }
+    }
+
+    function gerarJogoDominoReal() {
+        const tabuleiro = document.getElementById('tabuleiro');
+        const nivelSelecionado = document.getElementById('nivel-dificuldade').value;
+        tabuleiro.innerHTML = '';
+
+        let pecasMapeadas = [];
+        let contadorId = 1;
+
+        for (let i = 0; i <= 6; i++) {
+            for (let j = i; j <= 6; j++) {
+                let textoEsquerdo = obterTextoVisual(i, nivelSelecionado);
+                let textoDireito = obterTextoVisual(j, nivelSelecionado);
+
+                if (i === j && textoEsquerdo === textoDireito) {
+                    textoEsquerdo = bancoNiveis[nivelSelecionado][i].operacoes[0];
+                    textoDireito = bancoNiveis[nivelSelecionado][j].resultado;
+                }
+
+                pecasMapeadas.push({
+                    id: contadorId++,
+                    valEsq: i,
+                    valDir: j,
+                    txtEsq: textoEsquerdo,
+                    txtDir: textoDireito
+                });
+            }
+        }
+
+        for (let i = pecasMapeadas.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [pecasMapeadas[i], pecasMapeadas[j]] = [pecasMapeadas[j], pecasMapeadas[i]];
+        }
+
+        pecasMapeadas.forEach(peca => {
+            const card = document.createElement('div');
+            card.className = 'domino-card';
+            
+            const classeEsq = peca.txtEsq.length > 6 ? "texto-domino texto-longo" : "texto-domino";
+            const classeDir = peca.txtDir.length > 6 ? "texto-domino texto-longo" : "texto-domino";
+
+            card.innerHTML = `
+                <div class="num-peca">Peça ${peca.id}</div>
+                <svg viewBox="0 0 260 100">
+                    <rect x="5" y="5" width="250" height="90" class="borda-domino" />
+                    <line x1="130" y1="5" x2="130" y2="95" class="linha-divisoria" />
+                    
+                    <text x="67.5" y="50" class="${classeEsq}">${peca.txtEsq}</text>
+                    <text x="192.5" y="50" class="${classeDir}">${peca.txtDir}</text>
+                </svg>
+            `;
+            tabuleiro.appendChild(card);
+        });
+    }
+
+    window.onload = gerarJogoDominoReal;
+</script>
+
+</body>
+</html>
