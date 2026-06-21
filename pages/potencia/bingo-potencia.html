@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Sorteador de Potências</title>
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            --card-bg: rgba(255, 255, 255, 0.06);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --btn-bg: rgba(255, 255, 255, 0.04);
+            --btn-hover: #38bdf8;
+            --disabled: rgba(255, 255, 255, 0.15);
+            --danger: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--bg-gradient);
+            color: var(--text-main);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Camada de fundo com fórmulas */
+        .math-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+            user-select: none;
+            opacity: 0.03;
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        .formula { position: absolute; white-space: nowrap; }
+
+        /* Área Principal */
+        .main {
+            flex: 3;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-right: 1px solid var(--card-border);
+            padding: 40px;
+            z-index: 1;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(to right, #fff, var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 6px;
+        }
+
+        .sub {
+            color: var(--text-muted);
+            margin-bottom: 24px;
+            font-size: 0.95rem;
+        }
+        
+        /* Painel de Configuração */
+        .config-panel {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 16px 24px;
+            border-radius: 16px;
+            margin-bottom: 30px;
+            display: flex;
+            gap: 24px;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2);
+        }
+
+        .config-group { display: flex; flex-direction: column; gap: 6px; }
+        .config-group label {
+            color: var(--accent);
+            font-weight: 700;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .config-inputs { display: flex; gap: 8px; }
+        .config-panel input { 
+            width: 55px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--card-border);
+            color: white; 
+            padding: 6px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+            font-family: inherit;
+            transition: border-color 0.2s;
+        }
+        .config-panel input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        /* Ajuste do Expoente */
+        sup { 
+            vertical-align: super; 
+            font-size: 0.55em !important; 
+            line-height: 0; 
+            position: relative; 
+            top: -0.4em; 
+            padding-left: 2px;
+        }
+
+        /* Display Operação Sorteada */
+        .display-operacao {
+            font-size: 110px;
+            font-weight: 800;
+            margin: 20px 0 40px 0;
+            color: #ffffff;
+            text-shadow: 0 0 30px rgba(56, 189, 248, 0.2);
+            height: 160px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            width: 100%;
+            max-width: 500px;
+            border-radius: 24px;
+        }
+        
+        /* Lateral de Histórico */
+        .sidebar {
+            flex: 1;
+            padding: 30px 20px;
+            overflow-y: auto;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            z-index: 1;
+        }
+
+        .sidebar h2 {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            border-bottom: 1px solid var(--card-border);
+            padding-bottom: 12px;
+            text-align: center;
+        }
+
+        .historico-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
+        
+        .historico-item { 
+            background: var(--btn-bg);
+            padding: 16px 10px;
+            border-radius: 12px; 
+            text-align: center;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-main);
+            border: 1px solid var(--card-border);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            animation: fadeIn 0.3s ease;
+        }
+        .historico-item:hover {
+            background: var(--accent);
+            color: #0f172a;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px -3px rgba(56, 189, 248, 0.3);
+            border-color: transparent;
+        }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Botões e Controles */
+        .controls { display: flex; flex-direction: column; gap: 14px; align-items: center; width: 100%; }
+        
+        #btn-sortear { 
+            padding: 18px 48px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            background: var(--accent);
+            color: #0f172a; 
+            border: none;
+            border-radius: 14px;
+            font-weight: 700;
+            transition: all 0.2s ease;
+            box-shadow: 0 8px 20px -4px rgba(56, 189, 248, 0.4);
+            width: 100%;
+            max-width: 380px;
+        }
+        #btn-sortear:hover:not(:disabled) {
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -4px rgba(14, 165, 233, 0.5);
+        }
+        #btn-sortear:active:not(:disabled) { transform: translateY(0); }
+        #btn-sortear:disabled { background: var(--disabled); color: var(--text-muted); box-shadow: none; cursor: not-allowed; opacity: 0.5; }
+        
+        .group-row { display: flex; gap: 12px; width: 100%; max-width: 380px; }
+
+        .secondary-btn {
+            flex: 1;
+            background: var(--btn-bg);
+            font-size: 0.85rem;
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.2s;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-main);
+            border: 1px solid var(--card-border);
+            text-align: center;
+        }
+        .secondary-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .gerador-btn { color: #34d399; border-color: rgba(52, 211, 153, 0.2); }
+        .gerador-btn:hover { background: rgba(52, 211, 153, 0.1); color: #34d399; border-color: rgba(52, 211, 153, 0.4); }
+
+        .reset {
+            color: var(--text-muted);
+            border-color: var(--card-border);
+            width: 100%;
+            max-width: 380px;
+            font-weight: 500;
+        }
+        .reset:hover { background: rgba(239, 68, 68, 0.1); color: var(--danger); border-color: rgba(239, 68, 68, 0.3); }
+        
+        .home-btn {
+            width: 100%;
+            max-width: 380px;
+            color: var(--text-muted);
+            border-color: transparent;
+            font-weight: 500;
+        }
+
+        /* Modais Redesenhados (Popup) */
+        .modal-overlay { 
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            justify-content: center; align-items: center; z-index: 1000;
+            opacity: 0; transition: opacity 0.3s ease;
+        }
+        .modal-overlay.show { display: flex; opacity: 1; }
+        
+        .modal-content { 
+            background: rgba(30, 27, 75, 0.95);
+            padding: 40px 32px;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+            width: 90%;
+            max-width: 460px;
+            transform: scale(0.96);
+            transition: transform 0.3s ease;
+        }
+        .modal-overlay.show .modal-content { transform: scale(1); }
+
+        .modal-op { font-size: 70px; color: var(--text-main); font-weight: 800; margin-bottom: 10px; }
+        .modal-res { font-size: 90px; color: var(--accent); font-weight: 800; text-shadow: 0 0 20px rgba(56, 189, 248, 0.3); }
+        
+        .instr-text {
+            text-align: left;
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin: 20px 0;
+            font-size: 0.95rem;
+        }
+
+        .close-modal {
+            margin-top: 20px;
+            background: var(--btn-bg);
+            border: 1px solid var(--card-border);
+            font-size: 0.95rem;
+            padding: 12px 24px;
+            color: var(--text-main);
+            border-radius: 10px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .close-modal:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
+
+        /* Responsividade para telas menores */
+        @media (max-width: 850px) {
+            body { flex-direction: column; overflow-y: auto; height: auto; }
+            .main { border-right: none; border-bottom: 1px solid var(--card-border); padding: 30px 16px; }
+            .sidebar { padding: 30px 16px; overflow-y: visible; }
+            .display-operacao { font-size: 80px; height: 130px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="math-bg">
+        <div class="formula" style="top: 5%; left: 5%; font-size: 2rem;">a² + b² = c²</div>
+        <div class="formula" style="top: 15%; right: 10%; font-size: 1.5rem;">E = mc²</div>
+        <div class="formula" style="bottom: 20%; left: 8%; font-size: 1.8rem;">x = [-b ± √(b² - 4ac)] / 2a</div>
+        <div class="formula" style="top: 40%; left: 2%; font-size: 2.5rem;">π ≈ 3,14159</div>
+        <div class="formula" style="bottom: 10%; right: 5%; font-size: 2.2rem;">e^{iπ} + 1 = 0</div>
+        <div class="formula" style="bottom: 5%; left: 40%; font-size: 1.3rem;">V = 4/3 πr³</div>
+    </div>
+
+    <div class="main">
+        <h1>BINGO: POTÊNCIAS</h1>
+        <p class="sub">Configure o intervalo e sorteie as operações</p>
+
+        <div class="config-panel">
+            <div class="config-group">
+                <label>Bases</label>
+                <div class="config-inputs">
+                    <input type="number" id="base-min" value="1" title="Mínimo">
+                    <input type="number" id="base-max" value="6" title="Máximo">
+                </div>
+            </div>
+            <div class="config-group">
+                <label>Expoentes</label>
+                <div class="config-inputs">
+                    <input type="number" id="exp-min" value="1" title="Mínimo">
+                    <input type="number" id="exp-max" value="6" title="Máximo">
+                </div>
+            </div>
+        </div>
+        
+        <div id="operacao-atual" class="display-operacao">?</div>
+        
+        <div class="controls">
+            <button id="btn-sortear" onclick="sortear()">PRÓXIMA OPERAÇÃO</button>
+            
+            <div class="group-row">
+                <a href="https://profpablosanches.github.io/bingo/gerador_cartelas.html" class="secondary-btn gerador-btn">🖨️ Cartelas</a>
+                <button class="secondary-btn" onclick="abrirInstrucoes()">Instruções</button>
+            </div>
+            
+            <button class="secondary-btn reset" onclick="zerarSorteador()">Reiniciar novos valores</button>
+            
+            <a href="index.html" class="secondary-btn home-btn">🏠 Voltar ao Início</a>
+        </div>
+    </div>
+
+    <div class="sidebar">
+        <h2>HISTÓRICO (Clique para ver)</h2>
+        <div id="historico" class="historico-grid"></div>
+    </div>
+
+    <div id="modal-res-container" class="modal-overlay" onclick="fecharModal('modal-res-container')">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div id="modal-op" class="modal-op"></div>
+            <div style="color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">resultado:</div>
+            <div id="modal-res" class="modal-res"></div>
+            <button class="close-modal" onclick="fecharModal('modal-res-container')">Fechar Janela</button>
+        </div>
+    </div>
+
+    <div id="modal-instr" class="modal-overlay" onclick="fecharModal('modal-instr')">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <h2 style="color: var(--accent); font-size: 1.4rem; text-align: left; font-weight: 800;">Instruções do Jogo</h2>
+            <div class="instr-text" id="texto-instrucoes">
+                <p style="margin-bottom: 8px;">1. Defina o intervalo de Bases e Expoentes desejado.</p>
+                <p style="margin-bottom: 8px;">2. Clique em "Reiniciar" para carregar as novas possibilidades.</p>
+                <p style="margin-bottom: 8px;">3. Distribua as cartelas para os alunos.</p>
+                <p style="margin-bottom: 8px;">4. Clique em "PRÓXIMA OPERAÇÃO" para realizar o sorteio.</p>
+                <p style="margin-bottom: 8px;">5. Os alunos marcam o resultado correspondente se houver na cartela.</p>
+                <p>6. Clique em qualquer item do histórico lateral para conferir o resultado de um sorteio passado.</p>
+            </div>
+            <button class="close-modal" onclick="fecharModal('modal-instr')">Entendido</button>
+        </div>
+    </div>
+
+    <script>
+        let operacoesPool = [];
+
+        function inicializar() {
+            const bMin = parseInt(document.getElementById('base-min').value);
+            const bMax = parseInt(document.getElementById('base-max').value);
+            const eMin = parseInt(document.getElementById('exp-min').value);
+            const eMax = parseInt(document.getElementById('exp-max').value);
+
+            operacoesPool = [];
+            
+            for (let b = bMin; b <= bMax; b++) {
+                for (let e = eMin; e <= eMax; e++) {
+                    operacoesPool.push({
+                        html: b + '<sup>' + e + '</sup>',
+                        resultado: Math.pow(b, e).toLocaleString('pt-BR')
+                    });
+                }
+            }
+            embaralhar();
+        }
+
+        function embaralhar() {
+            operacoesPool.sort(() => Math.random() - 0.5);
+        }
+
+        function sortear() {
+            if (operacoesPool.length === 0) {
+                document.getElementById('operacao-atual').style.fontSize = '45px';
+                document.getElementById('operacao-atual').innerText = "FIM DO JOGO";
+                document.getElementById('btn-sortear').disabled = true;
+                return;
+            }
+            const itemSorteado = operacoesPool.pop();
+            document.getElementById('operacao-atual').innerHTML = itemSorteado.html;
+
+            const historicoDiv = document.getElementById('historico');
+            const novoItem = document.createElement('div');
+            novoItem.className = 'historico-item';
+            novoItem.innerHTML = itemSorteado.html;
+            novoItem.onclick = () => mostrarResultado(itemSorteado.html, itemSorteado.resultado);
+            historicoDiv.prepend(novoItem);
+        }
+
+        function mostrarResultado(opHtml, resText) {
+            document.getElementById('modal-op').innerHTML = opHtml;
+            document.getElementById('modal-res').innerText = resText;
+            document.getElementById('modal-res-container').classList.add('show');
+        }
+
+        function abrirInstrucoes() {
+            document.getElementById('modal-instr').classList.add('show');
+        }
+
+        function fecharModal(id) {
+            document.getElementById(id).classList.remove('show');
+        }
+
+        function zerarSorteador() {
+            if (confirm("Deseja aplicar os novos limites e reiniciar o bingo?")) {
+                fecharModal('modal-res-container');
+                document.getElementById('historico').innerHTML = "";
+                document.getElementById('operacao-atual').innerHTML = "?";
+                document.getElementById('operacao-atual').style.fontSize = '110px';
+                document.getElementById('btn-sortear').disabled = false;
+                inicializar();
+            }
+        }
+
+        inicializar();
+    </script>
+</body>
+</html>
