@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Gerador de Equações: Filtros Avançados de Delta</title>
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            --card-bg: rgba(255, 255, 255, 0.06);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --btn-bg: rgba(255, 255, 255, 0.04);
+            --btn-hover: #38bdf8;
+            --disabled: rgba(255, 255, 255, 0.15);
+            --danger: #ef4444;
+            --success: #34d399;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--bg-gradient);
+            color: var(--text-main);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Camada de fundo com fórmulas */
+        .math-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+            user-select: none;
+            opacity: 0.03;
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        .formula { position: absolute; white-space: nowrap; }
+
+        /* Área Principal */
+        .main {
+            flex: 2.5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-right: 1px solid var(--card-border);
+            padding: 40px;
+            z-index: 1;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(to right, #fff, var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 6px;
+        }
+
+        .sub {
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+        }
+
+        /* Painel de Configuração do Delta */
+        .config-panel {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 20px 24px;
+            border-radius: 16px;
+            margin-bottom: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 550px;
+        }
+
+        .config-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            width: 100%;
+        }
+
+        .config-group { display: flex; flex-direction: column; gap: 6px; }
+        .config-group label {
+            color: var(--accent);
+            font-weight: 700;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .config-inputs { display: flex; gap: 8px; align-items: center; }
+        .config-panel input[type="number"] { 
+            width: 80px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--card-border);
+            color: white; 
+            padding: 6px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+            font-family: inherit;
+            transition: border-color 0.2s;
+        }
+        .config-panel input[type="number"]:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        /* Indicação das possibilidades de Equações */
+        .delta-possibilities {
+            font-size: 13px;
+            color: var(--text-muted);
+            background: rgba(0, 0, 0, 0.15);
+            padding: 8px 12px;
+            border-radius: 6px;
+            border-left: 3px solid var(--accent);
+            margin-top: 2px;
+        }
+        .delta-possibilities span {
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        /* Checkbox Customizado */
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            user-select: none;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .checkbox-container input {
+            display: none;
+        }
+
+        .checkmark {
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--card-border);
+            border-radius: 4px;
+            display: inline-block;
+            position: relative;
+            background: rgba(0,0,0,0.2);
+            transition: all 0.2s;
+        }
+
+        .checkbox-container input:checked + .checkmark {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .checkbox-container input:checked + .checkmark:after {
+            content: "";
+            position: absolute;
+            left: 5px;
+            top: 2px;
+            width: 4px;
+            height: 8px;
+            border: solid #0f172a;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+
+        /* Display Operação Sorteada */
+        .display-operacao {
+            font-size: 48px;
+            font-weight: 800;
+            margin: 10px 0 35px 0;
+            color: #ffffff;
+            text-shadow: 0 0 30px rgba(56, 189, 248, 0.2);
+            height: 180px;
+            width: 100%;
+            max-width: 550px;
+            border-radius: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            font-family: monospace;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .display-subtitle {
+            font-size: 1rem;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 12px;
+            font-weight: 700;
+            font-family: 'Inter', sans-serif;
+        }
+
+        #display-valor {
+            word-break: break-all;
+            line-height: 1.2;
+        }
+        
+        /* Lateral de Histórico */
+        .sidebar {
+            flex: 1.5;
+            padding: 30px 20px;
+            overflow-y: auto;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar h2 {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            border-bottom: 1px solid var(--card-border);
+            padding-bottom: 12px;
+            text-align: center;
+        }
+
+        /* Contador Lateral Estilizado */
+        .sidebar-counter {
+            margin: 14px 0 5px 0;
+            background: rgba(56, 189, 248, 0.08);
+            border: 1px solid rgba(56, 189, 248, 0.15);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .sidebar-counter span {
+            color: var(--accent);
+            font-weight: 800;
+            font-size: 1.1rem;
+        }
+
+        .historico-grid { display: flex; flex-direction: column; gap: 12px; margin-top: 10px; }
+        
+        .historico-item { 
+            background: var(--btn-bg);
+            padding: 14px;
+            border-radius: 12px; 
+            text-align: center;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-main);
+            border: 1px solid var(--card-border);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            animation: fadeIn 0.3s ease;
+            font-family: monospace;
+        }
+        .historico-item:hover {
+            background: var(--accent);
+            color: #0f172a;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px -3px rgba(56, 189, 248, 0.3);
+            border-color: transparent;
+        }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Botões e Controles */
+        .controls { display: flex; flex-direction: column; gap: 14px; align-items: center; width: 100%; }
+        
+        #btn-sortear { 
+            padding: 18px 48px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            background: var(--accent);
+            color: #0f172a; 
+            border: none;
+            border-radius: 14px;
+            font-weight: 700;
+            transition: all 0.2s ease;
+            box-shadow: 0 8px 20px -4px rgba(56, 189, 248, 0.4);
+            width: 100%;
+            max-width: 380px;
+        }
+        #btn-sortear:hover {
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -4px rgba(14, 165, 233, 0.5);
+        }
+        
+        .group-row { display: flex; gap: 12px; width: 100%; max-width: 380px; }
+
+        .secondary-btn {
+            flex: 1;
+            background: var(--btn-bg);
+            font-size: 0.85rem;
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.2s;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-main);
+            border: 1px solid var(--card-border);
+            text-align: center;
+        }
+        .secondary-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .reset {
+            color: var(--text-muted);
+            border-color: var(--card-border);
+            width: 100%;
+            max-width: 380px;
+            font-weight: 500;
+        }
+        .reset:hover { background: rgba(239, 68, 68, 0.1); color: var(--danger); border-color: rgba(239, 68, 68, 0.3); }
+        
+        .home-btn {
+            width: 100%;
+            max-width: 380px;
+            color: var(--text-muted);
+            border-color: transparent;
+            font-weight: 500;
+        }
+
+        /* Modais */
+        .modal-overlay { 
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            justify-content: center; align-items: center; z-index: 1000;
+            opacity: 0; transition: opacity 0.3s ease;
+        }
+        .modal-overlay.show { display: flex; opacity: 1; }
+        
+        .modal-content { 
+            background: rgba(30, 27, 75, 0.95);
+            padding: 40px 32px;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+            width: 90%;
+            max-width: 540px;
+            transform: scale(0.96);
+            transition: transform 0.3s ease;
+        }
+        .modal-overlay.show .modal-content { transform: scale(1); }
+
+        .modal-op { font-size: 28px; color: var(--text-main); font-weight: 700; margin-bottom: 15px; font-family: monospace; }
+        .modal-coeficientes { font-size: 1rem; color: var(--accent); margin-bottom: 15px; font-weight: 600; letter-spacing: 0.5px; }
+        .modal-calc { font-size: 20px; color: var(--text-muted); font-weight: 500; margin-bottom: 20px; font-family: monospace; background: rgba(0,0,0,0.2); padding: 14px; border-radius: 8px; line-height: 1.5; text-align: left; }
+        .modal-res { font-size: 72px; color: #34d399; font-weight: 800; text-shadow: 0 0 20px rgba(52, 211, 153, 0.3); font-family: monospace; }
+        
+        .instr-text {
+            text-align: left;
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin: 20px 0;
+            font-size: 0.95rem;
+        }
+
+        .close-modal {
+            padding: 10px 24px;
+            background: var(--btn-bg);
+            border: 1px solid var(--card-border);
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .close-modal:hover {
+            background: white;
+            color: #0f172a;
+        }
+
+        @media (max-width: 850px) {
+            body { flex-direction: column; overflow-y: auto; height: auto; }
+            .main { border-right: none; border-bottom: 1px solid var(--card-border); padding: 30px 16px; }
+            .sidebar { padding: 30px 16px; overflow-y: visible; }
+            .display-operacao { font-size: 32px; height: 150px; }
+            .config-panel { width: 100%; max-width: 380px; }
+            .config-row { flex-direction: column; align-items: flex-start; gap: 14px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="math-bg">
+        <div class="formula" style="top: 5%; left: 5%; font-size: 2rem;">ax² + bx + c = 0</div>
+        <div class="formula" style="top: 15%; right: 10%; font-size: 1.5rem;">Δ = b² - 4ac</div>
+        <div class="formula" style="bottom: 20%; left: 8%; font-size: 1.8rem;">Δ > 0 → Duas raízes</div>
+        <div class="formula" style="top: 40%; left: 2%; font-size: 2.5rem;">Δ = 0</div>
+    </div>
+
+    <div class="main">
+        <h1>GERADOR DE EQUAÇÕES (2º GRAU)</h1>
+        <p class="sub">Defina os limites de Delta e gere problemas direcionados para a sua aula</p>
+
+        <div class="config-panel">
+            <div class="config-row">
+                <div class="config-group">
+                    <label>Intervalo do Delta (Δ)</label>
+                    <div class="config-inputs">
+                        <input type="number" id="delta-min" value="0" oninput="atualizarPossibilidades()" title="Delta Mínimo">
+                        <span>até</span>
+                        <input type="number" id="delta-max" value="100" oninput="atualizarPossibilidades()" title="Delta Máximo">
+                    </div>
+                </div>
+                
+                <label class="checkbox-container">
+                    <input type="checkbox" id="nao-repetir" onchange="atualizarPossibilidades()">
+                    <span class="checkmark"></span>
+                    Não repetir valores de Δ
+                </label>
+            </div>
+            
+            <div id="lbl-possibilidades" class="delta-possibilities">
+                Equações possíveis no limite atual: <span>0</span>
+            </div>
+        </div>
+        
+        <div id="operacao-atual" class="display-operacao">
+            <div class="display-subtitle" id="display-label">Clique abaixo para iniciar</div>
+            <div id="display-valor" style="font-size: 42px;">? = 0</div>
+        </div>
+        
+        <div class="controls">
+            <button id="btn-sortear" onclick="gerarEquacao()">GERAR NOVA EQUAÇÃO</button>
+            
+            <div class="group-row">
+                <button class="secondary-btn" onclick="abrirInstrucoes()">Instruções</button>
+                <button class="secondary-btn reset" onclick="limparHistorico()">Limpar Histórico</button>
+            </div>
+            
+            <a href="https://profpablosanches.github.io/portalpedagogico/" class="secondary-btn home-btn">🏠 Voltar ao Início</a>
+        </div>
+    </div>
+
+    <div class="sidebar">
+        <h2>EQUAÇÕES GERADAS</h2>
+        <div class="sidebar-counter">Total gerado nesta sessão: <span id="contador-gerados">0</span></div>
+        <div id="historico" class="historico-grid"></div>
+    </div>
+
+    <div id="modal-res-container" class="modal-overlay" onclick="fecharModal('modal-res-container')">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div id="modal-op" class="modal-op"></div>
+            <div id="modal-coeficientes" class="modal-coeficientes"></div>
+            <div style="color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; margin-bottom: 5px; text-align: left;">Passo a Passo (Δ = b² - 4ac):</div>
+            <div id="modal-calc" class="modal-calc"></div>
+            <div style="color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; margin-bottom: 5px;">Valor de Δ:</div>
+            <div id="modal-res" class="modal-res"></div>
+            <button class="close-modal" style="margin-top:20px;" onclick="fecharModal('modal-res-container')">Fechar Janela</button>
+        </div>
+    </div>
+
+    <div id="modal-instr" class="modal-overlay" onclick="fecharModal('modal-instr')">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <h2 style="color: var(--accent); font-size: 1.4rem; text-align: left; font-weight: 800;">Instruções do Jogo</h2>
+            <div class="instr-text" id="texto-instrucoes">
+                <p style="margin-bottom: 8px;">1. **Configuração de Delta**: Defina os limites numéricos. O painel mapeia instantaneamente quantas combinações ou valores válidos de delta existem dentro do limite estipulado.</p>
+                <p style="margin-bottom: 8px;">2. **Filtro Inédito**: Ative a caixa "Não repetir valores de Δ" para filtrar equações e reduzir a amostragem eliminando TODOS os coeficientes vinculados aos discriminantes que já saíram.</p>
+                <p style="margin-bottom: 8px;">3. Clique em <strong>"GERAR NOVA EQUAÇÃO"</strong> para renderizar o problema quadrático.</p>
+                <p style="margin-bottom: 8px;">4. Use a barra lateral para auditar o número total de equações aplicadas e clique nos itens do histórico para ver o passo a passo.</p>
+            </div>
+            <button class="close-modal" onclick="fecharModal('modal-instr')">Entendido</button>
+        </div>
+    </div>
+
+    <script>
+        let deltasSorteados = [];
+        let totalGeradosContador = 0;
+
+        function rand(min, max, excluirZero = false) {
+            let num = Math.floor(Math.random() * (max - min + 1)) + min;
+            if (excluirZero && num === 0) return rand(min, max, excluirZero);
+            return num;
+        }
+
+        function construirEquacaoTexto(a, b, c) {
+            let termoA = a === 1 ? "x²" : (a === -1 ? "-x²" : a + "x²");
+            let termoB = b > 0 ? ` + ${b}x` : (b < 0 ? ` - ${Math.abs(b)}x` : "");
+            let termoC = c > 0 ? ` + ${c}` : (c < 0 ? ` - ${Math.abs(c)}` : "");
+            return `${termoA}${termoB}${termoC} = 0`;
+        }
+
+        // ALTERADO: O método agora calcula os valores ÚNICOS de delta matematicamente alcançáveis no espaço amostral
+        function atualizarPossibilidades() {
+            const min = parseInt(document.getElementById('delta-min').value);
+            const max = parseInt(document.getElementById('delta-max').value);
+            const deveEvitarRepeticao = document.getElementById('nao-repetir').checked;
+            const container = document.getElementById('lbl-possibilidades');
+
+            if (isNaN(min) || isNaN(max)) {
+                container.innerHTML = "Equações possíveis: <span>Incompleto</span>";
+                return;
+            }
+
+            if (min > max) {
+                container.innerHTML = "⚠️ <span>Erro: O valor mínimo é maior que o máximo!</span>";
+                container.style.borderLeftColor = "var(--danger)";
+                return;
+            }
+
+            container.style.borderLeftColor = "var(--accent)";
+            
+            // Usamos um Set para computar apenas os valores únicos e matematicamente geráveis de delta
+            let deltasAlcancaveis = new Set();
+
+            for (let a = -6; a <= 6; a++) {
+                if (a === 0) continue;
+                for (let b = -12; b <= 12; b++) {
+                    for (let c = -18; c <= 18; c++) {
+                        let currentDelta = (b * b) - (4 * a * c);
+                        
+                        if (currentDelta >= min && currentDelta <= max) {
+                            // Se "não repetir" estiver marcado, remove da contagem caso já tenha sido sorteado
+                            if (!deveEvitarRepeticao || !deltasSorteados.includes(currentDelta)) {
+                                deltasAlcancaveis.add(currentDelta);
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (deveEvitarRepeticao) {
+                container.innerHTML = `Valores de Δ disponíveis restantes: <span>${deltasAlcancaveis.size}</span>`;
+            } else {
+                // Se não houver restrição, exibe o total bruto de combinações combinatórias possíveis
+                let combinacoesBrutas = 0;
+                for (let a = -6; a <= 6; a++) {
+                    if (a === 0) continue;
+                    for (let b = -12; b <= 12; b++) {
+                        for (let c = -18; c <= 18; c++) {
+                            let cd = (b * b) - (4 * a * c);
+                            if (cd >= min && cd <= max) combinacoesBrutas++;
+                        }
+                    }
+                }
+                container.innerHTML = `Equações possíveis no limite atual: <span>${combinacoesBrutas}</span>`;
+            }
+        }
+
+        function atualizarContadorLateral() {
+            document.getElementById('contador-gerados').innerText = totalGeradosContador;
+        }
+
+        function gerarEquacao() {
+            const deltaMin = parseInt(document.getElementById('delta-min').value);
+            const deltaMax = parseInt(document.getElementById('delta-max').value);
+            const deveEvitarRepeticao = document.getElementById('nao-repetir').checked;
+
+            if (isNaN(deltaMin) || isNaN(deltaMax) || deltaMin > deltaMax) {
+                alert("Verifique os limites numéricos do Delta antes de gerar!");
+                return;
+            }
+
+            let a, b, c, deltaFinal, deltaParcial4ac;
+            let tentativas = 0;
+            const maxTentativas = 4000; 
+
+            while (tentativas < maxTentativas) {
+                a = rand(-6, 6, true); 
+                b = rand(-12, 12);
+                c = rand(-18, 18);
+
+                deltaParcial4ac = 4 * a * c;
+                deltaFinal = (b * b) - deltaParcial4ac;
+
+                if (deltaFinal >= deltaMin && deltaFinal <= deltaMax) {
+                    if (!deveEvitarRepeticao || !deltasSorteados.includes(deltaFinal)) {
+                        break;
+                    }
+                }
+                tentativas++;
+            }
+
+            if (tentativas >= maxTentativas) {
+                if (deveEvitarRepeticao) {
+                    alert("Esgotaram-se as opções com valores de Delta inéditos para este intervalo. Desmarque 'Não repetir' ou limpe o histórico!");
+                } else {
+                    alert("Não foi possível sortear uma equação com estes filtros. Tente expandir o intervalo do Delta.");
+                }
+                return;
+            }
+
+            deltasSorteados.push(deltaFinal);
+            
+            totalGeradosContador++;
+            atualizarContadorLateral();
+            atualizarPossibilidades();
+
+            const equacaoTexto = construirEquacaoTexto(a, b, c);
+
+            document.getElementById('display-label').innerText = "Equação Gerada";
+            document.getElementById('display-valor').innerText = equacaoTexto;
+            document.getElementById('display-valor').style.fontSize = equacaoTexto.length > 15 ? '36px' : '42px';
+
+            const calcTexto = `Δ = (${b})² - 4 · (${a}) · (${c})\nΔ = ${b*b} ${deltaParcial4ac >= 0 ? '- ' + deltaParcial4ac : '+ ' + Math.abs(deltaParcial4ac)}\nΔ = ${deltaFinal}`;
+            const coefsTexto = `Coeficientes: a = ${a}, b = ${b}, c = ${c}`;
+
+            const historicoDiv = document.getElementById('historico');
+            const novoItem = document.createElement('div');
+            novoItem.className = 'historico-item';
+            novoItem.innerText = equacaoTexto;
+            
+            novoItem.onclick = () => mostrarResultado(equacaoTexto, coefsTexto, calcTexto, deltaFinal);
+            historicoDiv.prepend(novoItem);
+        }
+
+        function mostrarResultado(eqText, coefsText, calcText, deltaRes) {
+            document.getElementById('modal-op').innerText = eqText;
+            document.getElementById('modal-coeficientes').innerText = coefsText;
+            document.getElementById('modal-calc').innerText = calcText;
+            document.getElementById('modal-res').innerText = deltaRes;
+            document.getElementById('modal-res-container').classList.add('show');
+        }
+
+        function abrirInstrucoes() {
+            document.getElementById('modal-instr').classList.add('show');
+        }
+
+        function fecharModal(id) {
+            document.getElementById(id).classList.remove('show');
+        }
+
+        function limparHistorico() {
+            if (confirm("Deseja limpar o histórico e resetar a memória de repetições de Delta?")) {
+                deltasSorteados = []; 
+                totalGeradosContador = 0; 
+                atualizarContadorLateral();
+                
+                document.getElementById('historico').innerHTML = "";
+                document.getElementById('display-label').innerText = "Clique abaixo para iniciar";
+                document.getElementById('display-valor').innerText = "? = 0";
+                document.getElementById('display-valor').style.fontSize = '42px';
+                atualizarPossibilidades(); 
+            }
+        }
+
+        // Inicialização
+        atualizarPossibilidades();
+        atualizarContadorLateral();
+    </script>
+</body>
+</html>
