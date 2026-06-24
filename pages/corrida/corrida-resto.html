@@ -160,7 +160,7 @@
             gap: 24px;
         }
 
-        /* Wrapper do Tabuleiro */
+        /* CORREÇÃO DO TABULEIRO: Forçando as propriedades do Grid de 10x10 */
         .board {
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid var(--card-border);
@@ -169,10 +169,62 @@
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
-            min-height: 300px;
+            
+            /* Ativação do Grid */
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            grid-template-rows: repeat(10, 1fr);
+            gap: 8px;
+            aspect-ratio: 1 / 1; /* Mantém o tabuleiro quadrado */
+            width: 100%;
         }
 
-        /* Caixa de Instruções (Estilo Modal Embutido) */
+        /* Estilização básica das Casas (.cell) para o Tabuleiro */
+        .cell {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: #ffffff;
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.2s;
+            user-select: none;
+            padding: 5px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
+        }
+
+        .cell:hover {
+            transform: scale(1.05);
+            z-index: 2;
+        }
+
+        .cell .arrow {
+            font-size: 0.85rem;
+            opacity: 0.8;
+            margin-top: 2px;
+        }
+
+        /* Modificadores visuais do jogo */
+        .cell.special {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+
+        .cell.active {
+            box-shadow: 0 0 15px #fff, inset 0 0 5px #fff !important;
+            border: 2px solid #fff;
+        }
+
+        .white-mode {
+            color: #000000 !important;
+            border: 1px solid #000000 !important;
+        }
+
+        /* Caixa de Instruções */
         .instructions-box {
             background: var(--card-bg);
             border: 1px solid var(--card-border);
@@ -218,6 +270,9 @@
             body { padding: 20px 12px; }
             .controls { flex-direction: column; width: 100%; align-items: stretch; }
             button, .custom-select { width: 100%; }
+            .cell { font-size: 0.8rem; }
+            .cell .arrow { font-size: 0.65rem; }
+            .cell.special { font-size: 0.65rem; }
         }
 
         /* Regras de Otimização para Impressão Clássica */
@@ -237,13 +292,20 @@
             }
             .board {
                 background: transparent !important;
-                border: none !important;
+                border: 1px solid #000 !important;
                 box-shadow: none !important;
                 padding: 0 !important;
                 margin: 0 !important;
-                page-break-after: auto;
+                display: grid !important;
+                grid-template-columns: repeat(10, 1fr) !important;
+                grid-template-rows: repeat(10, 1fr) !important;
             }
-            /* Garante que o quadro de instruções seja impresso nitidamente */
+            .cell {
+                border: 1px solid #000 !important;
+                color: black !important;
+                text-shadow: none !important;
+                box-shadow: none !important;
+            }
             .instructions-box {
                 background: transparent !important;
                 border: 2px solid #333 !important;
