@@ -7,10 +7,16 @@ function gerarNumeroAleatorio(min, max) {
 
 function calcularCorCasa(index, total, modo) {
     if (modo === "pb") return "#ffffff";
+    
+    // Modificação Modo RGB: Cores alternadas e puras sem gradiente
     if (modo === "rgb") {
-        const hue = (index / (total - 1)) * 240; 
-        return `hsl(${hue}, 90%, 45%)`;
+        const resto = index % 3;
+        if (resto === 0) return "#ff0000"; // Vermelho
+        if (resto === 1) return "#00ff00"; // Verde
+        return "#0000ff";                  // Azul
     }
+    
+    // Mantém o gradiente padrão para o modo arco-íris
     const hue = (index / (total - 1)) * 300;
     return `hsl(${hue}, 85%, 45%)`;
 }
@@ -96,6 +102,7 @@ function renderizarTabuleiro() {
         } else if (index === totalCasasAtual - 1) {
             casa.innerHTML = `<span>Chegada</span>`;
             casa.classList.add('special');
+            // Permite que o fundo da chegada mude apenas se for o modo arcoíris
             if (modoSelecionado !== "pb" && modoSelecionado === "arcoiris") casa.style.backgroundColor = "#9b59b6";
         } else {
             if (!pos.numeroMatematico) pos.numeroMatematico = gerarNumeroAleatorio(10, 99);
