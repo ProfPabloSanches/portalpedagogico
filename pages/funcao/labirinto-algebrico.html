@@ -34,7 +34,7 @@
             gap: 20px;
             align-items: center;
             width: 100%;
-            max-width: 900px;
+            max-width: 950px;
         }
 
         .control-group {
@@ -56,16 +56,23 @@
             outline: none;
         }
 
-        button {
+        /* Botões e Links de Ação */
+        .btn {
             padding: 10px 20px;
             font-size: 14px;
             font-weight: bold;
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             transition: background 0.2s;
         }
 
+        .btn-home { background-color: #0f3460; color: white; }
+        .btn-home:hover { background-color: #162447; }
         .btn-generate { background-color: #00e676; color: #1a1a2e; }
         .btn-generate:hover { background-color: #00b359; }
         .btn-print { background-color: #007bff; color: white; }
@@ -76,7 +83,7 @@
             background: white;
             width: 210mm;
             min-height: 297mm;
-            padding: 12mm 12mm 12mm 25mm; /* Margem esquerda maior para acomodar os títulos das fases */
+            padding: 12mm 12mm 12mm 25mm; /* Margem esquerda maior para os títulos das fases */
             margin: 0 auto;
             box-shadow: 0 0 15px rgba(0,0,0,0.1);
             position: relative;
@@ -251,7 +258,7 @@
         /* --- REGRAS DE IMPRESSÃO --- */
         @media print {
             body { background-color: white; padding: 0; }
-            #control-panel { display: none; }
+            #control-panel { display: none; } /* Oculta todo o painel de controle no papel */
             .a4-page { box-shadow: none; margin: 0; width: 100%; height: 100%; padding: 10mm 10mm 10mm 22mm; }
             .level-sidebar-title { background: #fff; }
         }
@@ -260,7 +267,8 @@
 <body>
 
     <div id="control-panel">
-        <h2>Painel do Professor:</h2>
+        <a href="https://profpablosanches.github.io/portalpedagogico/" class="btn btn-home">← Página Inicial</a>
+        
         <div class="control-group">
             <label for="steps-select"><strong>Número de Etapas (Fases):</strong></label>
             <select id="steps-select" onchange="buildAndGenerateMaze()">
@@ -269,13 +277,14 @@
                 <option value="5">5 Fases</option>
             </select>
         </div>
-        <button class="button btn-generate" onclick="buildAndGenerateMaze()">Regerar Atividade</button>
-        <button class="button btn-print" onclick="window.print()">Imprimir / Salvar PDF</button>
+        
+        <button class="btn btn-generate" onclick="buildAndGenerateMaze()">Regerar Atividade</button>
+        <button class="btn btn-print" onclick="window.print()">Imprimir / Salvar PDF</button>
     </div>
 
     <div class="a4-page">
         <div class="header-sheet">
-            <h1>Labirinto Algébrico Dinâmico</h1>
+            <h1>Labirinto Algébrico</h1>
             <div class="student-data">
                 <div class="field"><strong>Estudante:</strong> </div>
                 <div class="field"><strong>Data:</strong> ____/____/2026</div>
@@ -321,14 +330,11 @@
         function getTargetChoiceString(nextLevelIdx, totalNextRooms) {
             if (totalNextRooms === undefined) return '<b>🏆 SAÍDA</b>';
             
-            // Se o próximo nível tiver apenas 1 sala (etapa inicial)
             if (totalNextRooms === 1) return '<b>Sala 2</b>';
 
-            // Se tiver 2 ou mais salas, monta a estrutura de escolha "Sala X OU Sala Y"
             if (totalNextRooms === 2) {
                 return `<b>Sala ${nextLevelIdx + 1}A</b> OU <b>${nextLevelIdx + 1}B</b>`;
             } else {
-                // Sorteia duas salas diferentes do próximo nível para oferecer como bifurcação
                 const r1 = alpha[0];
                 const r2 = alpha[Math.floor(Math.random() * (totalNextRooms - 1)) + 1];
                 return `<b>Sala ${nextLevelIdx + 1}${r1}</b> OU <b>${nextLevelIdx + 1}${r2}</b>`;
