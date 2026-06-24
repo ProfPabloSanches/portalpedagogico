@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Defensores da Álgebra</title>
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --panel-bg: rgba(20, 26, 44, 0.65);
+            --panel-border: rgba(0, 230, 118, 0.15);
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --neon-green: #00e676;
+            --neon-green-glow: rgba(0, 230, 118, 0.4);
+            --neon-red: #ff5252;
+            --neon-red-glow: rgba(255, 50, 50, 0.4);
+            --btn-blue: #0f3460;
+            --btn-blue-hover: #1f4068;
+        }
+
+        /* Reseta as margens, preenchimentos e define a fonte padrão do sistema */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        /* Define o fundo escuro do corpo da página e centraliza o conteúdo na tela */
+        body {
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(15, 23, 42, 0.9) 0, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(13, 148, 136, 0.1) 0, transparent 50%);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+            padding: 20px;
+        }
+
+        /* Estiliza o cabeçalho com o título do jogo e o botão de retorno */
+        header {
+            display: flex;
+            width: 100%;
+            max-width: 800px;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 0 5px;
+        }
+
+        /* Aplica efeito de brilho neon verde no título principal */
+        h1 {
+            color: var(--neon-green);
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            text-transform: uppercase;
+            text-shadow: 0 0 15px var(--neon-green-glow);
+        }
+
+        /* Estiliza o botão de voltar para o seu portal pedagógico */
+        .btn-portal {
+            padding: 10px 20px;
+            background-color: transparent;
+            color: var(--neon-green);
+            text-decoration: none;
+            border: 2px solid var(--neon-green);
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Efeito de transição ao passar o mouse sobre o botão do portal */
+        .btn-portal:hover {
+            background-color: var(--neon-green);
+            color: var(--bg-color);
+            box-shadow: 0 0 20px var(--neon-green-glow);
+            transform: translateY(-2px);
+        }
+
+        /* Container principal que envelopa o Canvas e as telas de menu */
+        #game-container {
+            position: relative;
+            background-color: #101726;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            overflow: hidden;
+        }
+
+        /* Define o elemento gráfico Canvas com um degradê espacial de fundo */
+        canvas {
+            display: block;
+            background: linear-gradient(to bottom, #151d30, #0b0f19);
+        }
+
+        /* Caixa de interface inferior onde a pergunta matemática é exibida */
+        #ui-container {
+            position: absolute;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(11, 15, 25, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 16px 28px;
+            border-radius: 14px;
+            border: 1px solid var(--panel-border);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 230, 118, 0.1);
+        }
+
+        /* Estilização do texto da fórmula ou pergunta matemática */
+        #equation-display {
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            color: #ffffff;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        /* Alinha o campo de digitação e o botão de disparo lado a lado */
+        #input-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* Caixa de texto numérica onde o aluno digita a resposta */
+        input[type="number"] {
+            width: 90px;
+            padding: 10px;
+            font-size: 18px;
+            font-weight: 700;
+            background-color: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            color: #ffffff;
+            text-align: center;
+            outline: none;
+            transition: all 0.2s;
+        }
+        
+        input[type="number"]:focus {
+            border-color: var(--neon-green);
+            background-color: rgba(255, 255, 255, 0.12);
+            box-shadow: 0 0 10px rgba(0, 230, 118, 0.2);
+        }
+        
+        input[type="number"]::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+        
+        input[type="number"]:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* Campos de seleção (Select) dos menus de configuração */
+        select {
+            padding: 12px 16px;
+            font-size: 15px;
+            font-weight: 500;
+            border-radius: 8px;
+            background-color: #111827;
+            color: var(--text-main);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            outline: none;
+            cursor: pointer;
+            width: 100%;
+            max-width: 320px;
+            transition: border-color 0.2s;
+        }
+        
+        select:focus {
+            border-color: var(--neon-green);
+        }
+
+        /* Estilo base de todos os botões de ação do jogo */
+        button {
+            padding: 10px 24px;
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            background-color: var(--neon-green);
+            color: var(--bg-color);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Altera a cor do botão ao passar o mouse */
+        button:hover:not(:disabled) {
+            background-color: #00ff81;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px var(--neon-green-glow);
+        }
+        
+        button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* Container superior direito para agrupar botões de controle em tempo de jogo */
+        .control-buttons {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            display: flex;
+            gap: 8px;
+            z-index: 5;
+        }
+
+        /* Botões menores de utilidade (Resetar/Mudar dificuldade) */
+        .btn-control {
+            padding: 8px 14px;
+            font-size: 13px;
+            background-color: rgba(255, 255, 255, 0.06);
+            color: var(--text-main);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+        }
+
+        .btn-control:hover:not(:disabled) {
+            background-color: rgba(255, 255, 255, 0.15);
+            color: #ffffff;
+            box-shadow: none;
+        }
+
+        /* Botão de alerta vermelho para chamar atenção de interrupção */
+        .btn-danger {
+            background-color: rgba(255, 82, 82, 0.1);
+            border: 1px solid rgba(255, 82, 82, 0.3);
+            color: var(--neon-red);
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            background-color: var(--neon-red) !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 12px var(--neon-red-glow) !important;
+        }
+
+        /* Painel flutuante superior esquerdo com dados de Pontos e Vidas */
+        #hud {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            background: rgba(11, 15, 25, 0.6);
+            padding: 10px 16px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+        }
+
+        .score { 
+            color: var(--neon-green); 
+            text-shadow: 0 0 10px rgba(0, 230, 118, 0.2);
+        }
+        .lives { 
+            color: var(--neon-red); 
+            text-shadow: 0 0 10px rgba(255, 82, 82, 0.2);
+        }
+
+        /* Telas sobrepostas absolutas usadas para Menus e Fim de Jogo */
+        .overlay-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(11, 15, 25, 0.92);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            border-radius: 12px;
+            z-index: 10;
+            padding: 30px;
+        }
+        
+        .overlay-screen label {
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin-top: 6px;
+        }
+
+        /* Classe utilitária para ocultar elementos instantaneamente */
+        .hidden {
+            display: none !important;
+        }
+        
+        /* Remove setas nativas do input do tipo number */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Defensores da Álgebra</h1>
+        <a href="https://profpablosanches.github.io/portalpedagogico/" class="btn-portal">← Voltar ao Portal</a>
+    </header>
+
+    <div id="game-container">
+        <div id="hud">
+            <span class="score">Pontos: <span id="score-val">0</span></span>
+            <span class="lives">Vidas: <span id="lives-val">3</span></span>
+        </div>
+
+        <div class="control-buttons">
+            <button id="in-game-restart-btn" class="btn-control">Resetar Partida</button>
+            <button id="in-game-change-diff-btn" class="btn-control btn-danger">Mudar Configurações</button>
+        </div>
+
+        <canvas id="gameCanvas" width="800" height="450"></canvas>
+
+        <div id="ui-container">
+            <div id="equation-display">Aguardando início...</div>
+            <div id="input-container">
+                <input type="number" id="answer-input" placeholder="X = ?" autocomplete="off" disabled>
+                <button id="fire-btn" disabled>ATIRAR</button>
+            </div>
+        </div>
+
+        <div id="start-screen" class="overlay-screen">
+            <h2 style="font-size: 28px; font-weight: 800; color: var(--neon-green); text-shadow: 0 0 15px var(--neon-green-glow); margin-bottom: 10px;">Configurações da Missão:</h2>
+            
+            <label>Tipo de Atividade Matemática:</label>
+            <select id="operation-select">
+                <option value="soma-sub">Soma e Subtração</option>
+                <option value="multiplicacao">Multiplicação (Tabuada do 2 ao 9)</option>
+                <option value="divisao">Divisão (Resultados Exatos)</option>
+                <option value="funcao1">Função de Primeiro Grau (ax ± b = c)</option>
+            </select>
+
+            <label>Velocidade do Invasor:</label>
+            <select id="speed-select">
+                <option value="0.1">Lento (Ideal para treinar)</option>
+                <option value="0.5" selected>Normal (Padrão)</option>
+                <option value="1.0">Rápido (Desafio)</option>
+                <option value="2.0">Velocidade da Luz! ⚡</option>
+            </select>
+            
+            <button id="start-btn" style="font-size: 16px; padding: 14px 48px; margin-top: 20px; text-transform: uppercase; letter-spacing: 1px;">INICIAR JOGO</button>
+        </div>
+
+        <div id="game-over-screen" class="overlay-screen hidden">
+            <h2 style="font-size: 42px; font-weight: 900; color: var(--neon-red); text-shadow: 0 0 20px var(--neon-red-glow);">Fim de Jogo!</h2>
+            <p style="font-size: 16px; color: var(--text-muted);">Você defendeu o reino até onde pôde.</p>
+            <p style="font-size: 26px; font-weight: 800; color: var(--neon-green); margin: 10px 0;">Pontuação Final: <span id="final-score">0</span></p>
+            <p style="font-size: 14px; color: var(--text-muted); max-width: 400px; text-align: center; line-height: 1.5;">Use os botões no topo para reiniciar ou mudar as configurações da sua missão.</p>
+        </div>
+    </div>
+
+    <script>
+        // Mapeia o elemento canvas e extrai seu contexto de desenho bidimensional (2D)
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Mapeamento completo dos elementos do DOM (HTML) manipulados pelo JavaScript
+        const equationDisplay = document.getElementById('equation-display');
+        const answerInput = document.getElementById('answer-input');
+        const fireBtn = document.getElementById('fire-btn');
+        const scoreVal = document.getElementById('score-val');
+        const livesVal = document.getElementById('lives-val');
+        const startScreen = document.getElementById('start-screen');
+        const gameOverScreen = document.getElementById('game-over-screen');
+        const finalScore = document.getElementById('final-score');
+        const startBtn = document.getElementById('start-btn');
+        const inGameRestartBtn = document.getElementById('in-game-restart-btn');
+        const inGameChangeDiffBtn = document.getElementById('in-game-change-diff-btn');
+        const speedSelect = document.getElementById('speed-select');
+        const operationSelect = document.getElementById('operation-select');
+
+        // Variáveis globais de controle do estado interno do jogo
+        let score = 0;              // Armazena os pontos obtidos pelo usuário
+        let lives = 3;              // Controla a quantidade de vidas do jogador
+        let currentX = 0;           // Guarda em tempo de execução a resposta numérica correta da equação ativa
+        let gameActive = false;     // Define se o motor do jogo está atualizando as posições ou pausado
+        let baseSpeed = 0.8;        // Armazena a velocidade base selecionada pelo usuário no menu
+        let selectedOp = 'soma-sub';// Guarda a string chave do tipo de operação matemática selecionada
+
+        // Propriedades estruturais estáticas da Torre de Defesa (Alvo do monstro)
+        const tower = { x: 700, y: 225, radius: 30 };
+        // Objeto dinâmico do Invasor/Monstro (Posição, velocidade variante e estado)
+        let monster = { x: 0, y: 225, speed: 0.8, radius: 20, active: true };
+        // Objeto dinâmico do Projétil/Tiro de Plasma disparado pela torre
+        let projectile = { x: 700, y: 225, targetX: 0, targetY: 225, speed: 15, active: false };
+
+        // --- MOTOR DE GERAÇÃO MATEMÁTICA PROCEDURAL ---
+        function generateEquation() {
+            // Estrutura condicional para criar desafios baseados na escolha pedagógica do menu
+            if (selectedOp === 'soma-sub') {
+                // Sorteia números inteiros simples para contas elementares de somar ou subtrair
+                const num1 = Math.floor(Math.random() * 20) + 1;
+                const num2 = Math.floor(Math.random() * 20) + 1;
+                const isAddition = Math.random() > 0.5;
+
+                if (isAddition) {
+                    currentX = num1 + num2; // A resposta esperada será a soma direta
+                    equationDisplay.textContent = `${num1} + ${num2} = ?`;
+                } else {
+                    // Garante que o maior número fique na frente para evitar resultados negativos no ensino básico
+                    const max = Math.max(num1, num2);
+                    const min = Math.min(num1, num2);
+                    currentX = max - min; // A resposta esperada será a diferença
+                    equationDisplay.textContent = `${max} - ${min} = ?`;
+                }
+            } 
+            else if (selectedOp === 'multiplicacao') {
+                // Tabuada restrita de forma pedagógica do fator 2 ao fator 9
+                const fator1 = Math.floor(Math.random() * 8) + 2; 
+                const fator2 = Math.floor(Math.random() * 9) + 1; 
+                currentX = fator1 * fator2; // Guarda o produto exato
+                equationDisplay.textContent = `${fator1} × ${fator2} = ?`;
+            } 
+            else if (selectedOp === 'divisao') {
+                // Gera divisões invertendo a multiplicação, garantindo resto zero (divisão exata)
+                const divisor = Math.floor(Math.random() * 8) + 2; // Divisor entre 2 e 9
+                const quocienteEsperado = Math.floor(Math.random() * 10) + 1; // Resposta correta será entre 1 e 10
+                const dividendo = divisor * quocienteEsperado; // O dividendo é gerado de trás para frente
+                
+                currentX = quocienteEsperado; // A resposta que o aluno deve digitar é o quociente
+                equationDisplay.textContent = `${dividendo} ÷ ${divisor} = ?`;
+            } 
+            else if (selectedOp === 'funcao1') {
+                // Lógica Reversa de Equações de 1º Grau: Define X primeiro para garantir resposta inteira
+                currentX = Math.floor(Math.random() * 10) + 1; // Resposta será um inteiro limpo de 1 a 10
+                const a = Math.floor(Math.random() * 4) + 2;   // Coeficiente angular 'a' entre 2 e 5
+                const b = Math.floor(Math.random() * 10) + 1;  // Termo constante 'b' entre 1 e 10
+                const isAddition = Math.random() > 0.5;
+
+                let c; // Termo resultante da equação (após a igualdade)
+                if (isAddition) {
+                    c = (a * currentX) + b;
+                    equationText = `${a}x + ${b} = ${c}`;
+                } else {
+                    c = (a * currentX) - b;
+                    equationText = `${a}x - ${b} = ${c}`;
+                }
+                equationDisplay.textContent = equationText; // Exibe o formato algébrico ax ± b = c
+            }
+        }
+
+        // --- SISTEMA DE GERENCIAMENTO DE FLUXO DO JOGO ---
+        function startGame() {
+            // Captura os valores selecionados nos seletores HTML
+            baseSpeed = parseFloat(speedSelect.value);
+            selectedOp = operationSelect.value;
+            
+            // Oculta as telas de aviso/menus de interface
+            startScreen.classList.add('hidden');
+            gameOverScreen.classList.add('hidden');
+            
+            // Reseta as variáveis de pontuação e ciclo de vida do jogador para o padrão inicial
+            score = 0;
+            lives = 3;
+            scoreVal.textContent = score;
+            livesVal.textContent = lives;
+            projectile.active = false; // Desativa tiros antigos residuais
+
+            // Libera as caixas de texto e botões para a entrada de dados do aluno
+            answerInput.disabled = false;
+            fireBtn.disabled = false;
+            
+            gameActive = true;         // Ativa as rotinas de atualização no loop lógico
+            resetMonster();            // Reposiciona o inimigo no início da linha de ataque
+            answerInput.focus();       // Coloca automaticamente o cursor de digitação no input de resposta
+        }
+
+        // Analisa se a resposta submetida pelo aluno coincide com o valor matemático gerado
+        function checkAnswer() {
+            // Aborta a validação se o jogo estiver congelado ou se já houver um projétil em tráfego na tela
+            if (!gameActive || projectile.active) return;
+
+            // Transforma o texto inserido no input em um valor numérico inteiro puro
+            const playerAnswer = parseInt(answerInput.value);
+
+            if (playerAnswer === currentX) {
+                // Configura as coordenadas de origem e destino da animação do tiro
+                projectile.x = tower.x;
+                projectile.y = tower.y;
+                projectile.targetX = monster.x;
+                projectile.targetY = monster.y;
+                projectile.active = true; // Permite a renderização do projétil no Canvas
+                
+                score += 10; // Concede bonificação de pontuação pedagógica por acerto rápido
+                scoreVal.textContent = score;
+            } else {
+                // Aplica feedback estético de erro adicionando uma borda vermelha temporária no campo
+                answerInput.style.borderColor = "var(--neon-red)";
+                answerInput.style.boxShadow = "0 0 10px var(--neon-red-glow)";
+                setTimeout(() => {
+                    answerInput.style.borderColor = "rgba(255, 255, 255, 0.15)";
+                    answerInput.style.boxShadow = "none";
+                }, 500);
+            }
+
+            // Limpa o conteúdo do campo e devolve o foco do teclado para a próxima rodada
+            answerInput.value = '';
+            answerInput.focus();
+        }
+
+        // Reposiciona o monstro invasor na origem e recalcula sua velocidade progressiva
+        function resetMonster() {
+            monster.x = 0; // Move o monstro de volta para a extrema esquerda do Canvas
+            // Acelera sutilmente a velocidade do monstro a cada acerto para criar curva de desafio dinâmico
+            monster.speed = baseSpeed + (score * 0.005); 
+            generateEquation(); // Dispara a criação de um novo problema matemático procedural
+        }
+
+        // Executado imediatamente quando o contador de vidas chega a zero
+        function gameOver() {
+            gameActive = false;           // Interrompe os cálculos mecânicos de movimento
+            answerInput.disabled = true;  // Bloqueia a caixa de inserção de texto
+            fireBtn.disabled = true;      // Desativa o clique no botão atirar
+            finalScore.textContent = score; // Transfere a pontuação final acumulada para a tela de fim
+            gameOverScreen.classList.remove('hidden'); // Apresenta visualmente a tela de fim de jogo
+        }
+
+        // Força a interrupção da execução atual e traz de volta o menu flutuante de configurações
+        function goToMenu() {
+            gameActive = false; // Trava o avanço do monstro em background
+            gameOverScreen.classList.add('hidden'); // Oculta a tela de game over se ativa
+            startScreen.classList.remove('hidden'); // Mostra o painel inicial de customização de matérias
+            equationDisplay.textContent = "Aguardando início...";
+            answerInput.disabled = true; // Desabilita os campos temporariamente
+            fireBtn.disabled = true;
+        }
+
+        // --- MAPEAMENTO DE ESCUTADORES DE EVENTOS DE ENTRADA (MOU/TECLADO) ---
+        startBtn.addEventListener('click', startGame); // Dispara o jogo ao clicar no botão de início
+        fireBtn.addEventListener('click', checkAnswer); // Valida a resposta do usuário ao clicar em Atirar
+        
+        // Permite ao estudante submeter respostas pressionando a tecla 'Enter' do teclado
+        answerInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') checkAnswer();
+        });
+        
+        // Conecta o clique dos botões de menu visíveis a qualquer momento às suas respectivas funções de controle
+        inGameRestartBtn.addEventListener('click', startGame); 
+        inGameChangeDiffBtn.addEventListener('click', goToMenu);
+
+        // --- MOTOR DE EXECUÇÃO EM TEMPO REAL (LOOP GRÁFICO DO CANVAS) ---
+        function update() {
+            if (!gameActive) return; // Suspende atualizações se o jogo estiver pausado ou em telas de menu
+
+            // Bloco de avanço de coordenadas do monstro inimigo
+            if (monster.active) {
+                monster.x += monster.speed; // Incrementa a posição horizontal baseado na taxa de velocidade
+
+                // Detecta colisão física: Verifica se o monstro alcançou o limite geométrico da torre defensora
+                if (monster.x >= tower.x - tower.radius) {
+                    lives--; // Subtrai uma unidade de vida do jogador
+                    livesVal.textContent = lives; // Sincroniza a interface de texto do HUD
+                    if (lives <= 0) {
+                        gameOver(); // Aciona o fim de jogo imediato se as vidas acabarem
+                    } else {
+                        resetMonster(); // Dá uma nova chance gerando um novo problema matemático
+                    }
+                }
+            }
+
+            // Bloco de interpolação e trigonometria de movimento retilíneo do projétil amarelo
+            if (projectile.active) {
+                const dx = projectile.targetX - projectile.x; // Calcula a distância vetorial horizontal até o alvo
+                const dy = projectile.targetY - projectile.y; // Calcula a distância vetorial vertical até o alvo
+                const distance = Math.sqrt(dx * dx + dy * dy); // Aplica o Teorema de Pitágoras para obter a distância real linear
+
+                // Se o tiro ainda estiver distante do alvo, calcula o vetor de aproximação normalizado
+                if (distance > projectile.speed) {
+                    projectile.x += (dx / distance) * projectile.speed;
+                    projectile.y += (dy / distance) * projectile.speed;
+                } else {
+                    // Impacto confirmado: O tiro alcançou a coordenada exata do monstro
+                    projectile.active = false; // Desativa o desenho e render de viagem do tiro
+                    resetMonster(); // Elimina o monstro atual e spawna o próximo desafio na esquerda
+                }
+            }
+        }
+
+        // Desenha todos os elementos estéticos, formas e cores dentro do quadro do Canvas HTML5
+        function draw() {
+            // Limpa o canvas por completo limpando os rastro dos frames passados
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Renderiza o caminho/estrada de terra centralizada horizontalmente por onde os monstros marcham
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(0, 222, canvas.width, 6);
+
+            // Desenha o círculo externo da estrutura da Torre de Defesa (Verde)
+            ctx.beginPath();
+            ctx.arc(tower.x, tower.y, tower.radius, 0, Math.PI * 2);
+            ctx.fillStyle = '#00e676';
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = '#00e676';
+            ctx.fill();
+            ctx.closePath();
+            ctx.shadowBlur = 0; // Limpa sombra para elementos internos
+            
+            // Desenha um detalhe geométrico interno para dar profundidade estética à torre
+            ctx.beginPath();
+            ctx.arc(tower.x, tower.y, tower.radius - 8, 0, Math.PI * 2);
+            ctx.fillStyle = '#0f172a';
+            ctx.fill();
+            ctx.closePath();
+
+            ctx.beginPath();
+            ctx.arc(tower.x, tower.y, 6, 0, Math.PI * 2);
+            ctx.fillStyle = '#00e676';
+            ctx.fill();
+            ctx.closePath();
+
+            // Renderiza a criatura inimiga (Círculo Vermelho com Olho direcional) se o jogo estiver ativo
+            if (monster.active && gameActive) {
+                ctx.beginPath();
+                ctx.arc(monster.x, monster.y, monster.radius, 0, Math.PI * 2);
+                ctx.fillStyle = '#ff5252';
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = '#ff5252';
+                ctx.fill();
+                ctx.closePath();
+                ctx.shadowBlur = 0;
+                
+                // Renderiza o detalhe do olho branco voltado para a frente da marcha
+                ctx.beginPath();
+                ctx.arc(monster.x + 8, monster.y - 2, 5, 0, Math.PI * 2);
+                ctx.fillStyle = '#fff';
+                ctx.fill();
+                ctx.closePath();
+
+                ctx.beginPath();
+                ctx.arc(monster.x + 10, monster.y - 2, 2, 0, Math.PI * 2);
+                ctx.fillStyle = '#0f172a';
+                ctx.fill();
+                ctx.closePath();
+            }
+
+            // Desenha e aplica efeito luminoso de brilho neon no projétil de plasma se houver um tiro ativo
+            if (projectile.active) {
+                ctx.beginPath();
+                ctx.arc(projectile.x, projectile.y, 7, 0, Math.PI * 2);
+                ctx.fillStyle = '#eab308';
+                ctx.shadowBlur = 20; // Adiciona raio de difusão de sombra iluminada
+                ctx.shadowColor = '#eab308'; // Define a cor amarela para o brilho
+                ctx.fill();
+                ctx.closePath();
+                ctx.shadowBlur = 0; // Limpa e reseta a sombra global do canvas para não afetar os outros desenhos
+            }
+        }
+
+        // Loop principal contínuo do jogo coordenado pela taxa de atualização nativa do monitor (geralmente 60FPS)
+        function gameLoop() {
+            update(); // Executa os cálculos lógicos e matemáticos de posição
+            draw();   // Redesenha os elementos de arte na tela sincronizadamente
+            requestAnimationFrame(gameLoop); // Solicita recursivamente o próximo quadro de animação ao navegador
+        }
+
+        // Inicializa o ciclo de vida gráfico do jogo (A tela começará parada aguardando a interação no menu)
+        gameLoop();
+    </script>
+</body>
+</html>
