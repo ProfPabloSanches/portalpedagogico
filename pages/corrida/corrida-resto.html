@@ -4,7 +4,265 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Corrida do Resto</title>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            --card-bg: rgba(255, 255, 255, 0.06);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --btn-bg: rgba(255, 255, 255, 0.04);
+            --btn-hover: #38bdf8;
+            --disabled: rgba(255, 255, 255, 0.2);
+            --neon-alert: #ff003c;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--bg-gradient);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 40px 20px;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Fundo de Fórmulas Matemáticas Sutil */
+        body::before {
+            content: "a² + b² = c²   E = mc²   π ≈ 3,14159   x = [-b ± √(b²-4ac)]/2a   f(x) = ∫ f(x)dx";
+            position: fixed;
+            top: 5%;
+            left: 5%;
+            width: 90%;
+            height: 90%;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.03;
+            font-weight: 700;
+            font-size: 2.5rem;
+            line-height: 2;
+            word-spacing: 40px;
+            color: var(--text-main);
+        }
+
+        .no-print {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 1000px;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.5px;
+            background: linear-gradient(to right, #fff, var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p {
+            color: var(--text-muted);
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Painel de Controles Estilizado (Glassmorphism) */
+        .controls {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 20px;
+            padding: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.3);
+        }
+
+        /* Botões padronizados com o modelo */
+        button, .custom-select {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 20px;
+            background-color: var(--btn-bg);
+            color: var(--text-main);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            outline: none;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            background-color: var(--btn-hover);
+            color: #0f172a;
+            box-shadow: 0 8px 20px -4px rgba(56, 189, 248, 0.4);
+            border-color: transparent;
+        }
+
+        /* Select customizado adaptado ao tema escuro */
+        .custom-select {
+            appearance: none;
+            -webkit-appearance: none;
+            padding-right: 35px;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+        }
+
+        .custom-select option {
+            background-color: #1e1b4b;
+            color: var(--text-main);
+        }
+
+        /* Destaque para o botão de impressão (Uso do Alerta Neon sutil) */
+        .btn-print {
+            border-color: rgba(255, 0, 60, 0.3);
+        }
+        .btn-print:hover {
+            background-color: var(--neon-alert) !important;
+            color: #fff !important;
+            box-shadow: 0 8px 20px -4px rgba(255, 0, 60, 0.4) !important;
+        }
+
+        /* Container do Conteúdo Principal */
+        .board-container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 1000px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* Wrapper do Tabuleiro */
+        .board {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--card-border);
+            border-radius: 24px;
+            padding: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            min-height: 300px;
+        }
+
+        /* Caixa de Instruções (Estilo Modal Embutido) */
+        .instructions-box {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 24px;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        .instructions-box h2 {
+            font-size: 1.3rem;
+            color: var(--accent);
+            margin-bottom: 16px;
+            border-left: 3px solid var(--accent);
+            padding-left: 10px;
+        }
+
+        .instructions-box h3 {
+            font-size: 1.05rem;
+            color: var(--text-main);
+            margin: 16px 0 8px 0;
+        }
+
+        .instructions-box p, .instructions-box li {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
+
+        .instructions-box ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .instructions-box li strong {
+            color: var(--accent);
+        }
+
+        /* Responsividade */
+        @media (max-width: 600px) {
+            h1 { font-size: 1.8rem; }
+            body { padding: 20px 12px; }
+            .controls { flex-direction: column; width: 100%; align-items: stretch; }
+            button, .custom-select { width: 100%; }
+        }
+
+        /* Regras de Otimização para Impressão Clássica */
+        @media print {
+            body {
+                background: white !important;
+                color: black !important;
+                padding: 0;
+            }
+            body::before, .no-print {
+                display: none !important;
+            }
+            .board-container {
+                width: 100% !important;
+                max-width: 100% !important;
+                gap: 30px !important;
+            }
+            .board {
+                background: transparent !important;
+                border: none !important;
+                box-shadow: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                page-break-after: auto;
+            }
+            /* Garante que o quadro de instruções seja impresso nitidamente */
+            .instructions-box {
+                background: transparent !important;
+                border: 2px solid #333 !important;
+                color: black !important;
+                padding: 20px !important;
+                box-shadow: none !important;
+                backdrop-filter: none !important;
+                -webkit-backdrop-filter: none !important;
+                page-break-inside: avoid;
+            }
+            .instructions-box h2, .instructions-box h3, .instructions-box li strong {
+                color: black !important;
+                border-left-color: black !important;
+            }
+            .instructions-box p, .instructions-box li {
+                color: #222 !important;
+            }
+        }
+    </style>
 </head>
 <body>
 
@@ -23,7 +281,7 @@
             </select>
 
             <button id="btnImprimir" class="btn-print">🖨️ Imprimir/Salvar PDF</button>
-            <div id="contadorCasas" style="margin-top: 10px; font-weight: bold; color: #f1c40f;"></div>
+            <div id="contadorCasas" style="margin-top: 10px; font-weight: bold; color: var(--accent);"></div>
         </div>
     </div>
 
