@@ -1,0 +1,260 @@
+/* --- Estilos Gerais com Identidade Futurista Escura (Tela) --- */
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    color: #e2e8f0;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+}
+
+/* Painel de Entrada do Professor (Estilo Neon Original) */
+.no-print-area {
+    background: rgba(30, 41, 59, 0.7);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    padding: 30px;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    margin-bottom: 40px;
+    width: 100%;
+    max-width: 650px;
+    text-align: center;
+    z-index: 10;
+}
+
+.no-print-area h2 { 
+    margin-top: 0; 
+    color: #38bdf8;
+    letter-spacing: 2px;
+    font-size: 1.8rem;
+    text-shadow: 0 0 15px rgba(56,189,248,0.4);
+}
+
+.warning-text {
+    background: rgba(239, 68, 68, 0.1);
+    border-left: 4px solid #ef4444;
+    padding: 10px;
+    color: #fca5a5;
+    font-size: 0.9rem;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+.input-box {
+    width: 85%;
+    padding: 12px;
+    font-size: 16px;
+    border: 2px solid #38bdf8;
+    background: rgba(15, 23, 42, 0.6);
+    color: #ffffff;
+    border-radius: 8px;
+    text-transform: uppercase;
+    margin-bottom: 15px;
+    outline: none;
+    transition: all 0.3s;
+}
+
+.input-box:focus {
+    box-shadow: 0 0 15px rgba(56, 189, 248, 0.5);
+}
+
+.select-dark {
+    max-width: 250px; 
+    margin-bottom: 0; 
+    padding: 8px 12px; 
+    font-size: 1rem; 
+    letter-spacing: 0;
+    text-transform: none;
+}
+.select-dark option {
+    background: #1e293b;
+    color: white;
+}
+
+/* Botões Customizados Originais */
+.btn {
+    color: #0f172a;
+    padding: 12px 24px;
+    font-size: 15px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: transform 0.2s, filter 0.2s;
+    margin: 5px;
+}
+.btn:hover { 
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+}
+.btn-blue { background-color: #38bdf8; color: #0f172a; }
+.btn-green { background-color: #4ade80; color: #0f172a; }
+.btn-gray { background-color: #64748b; color: #ffffff; }
+.btn-home { background-color: #475569; color: #ffffff; text-decoration: none; display: inline-flex; align-items: center; }
+
+/* Botão Popup Auxiliar de Níveis */
+.help-popup-container {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 100;
+}
+.help-btn {
+    background: rgba(30, 41, 59, 0.8);
+    color: #38bdf8;
+    border: 1px solid rgba(56, 189, 248, 0.4);
+    padding: 8px 14px;
+    font-size: 14px;
+    font-weight: bold;
+    border-radius: 20px;
+    cursor: pointer;
+    backdrop-filter: blur(5px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+.help-popup-content {
+    display: none;
+    position: absolute;
+    top: 35px;
+    left: 0;
+    background: #1e293b;
+    border: 1px solid #38bdf8;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    width: 280px;
+    color: #e2e8f0;
+}
+.help-popup-container:hover .help-popup-content { display: block; }
+.help-popup-content h4 { margin: 0 0 8px 0; color: #38bdf8; border-bottom: 1px solid rgba(56,189,248,0.2); padding-bottom: 4px; }
+.help-popup-content ul { margin: 0; padding-left: 18px; font-size: 12px; line-height: 1.5; }
+.help-popup-content li { margin-bottom: 6px; }
+
+/* Fundo matemático decorativo */
+.math-bg {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+    user-select: none;
+    opacity: 0.03;
+    color: #ffffff;
+    font-weight: 600;
+}
+.formula { position: absolute; white-space: nowrap; }
+
+/* --- Estrutura Geral das Folhas A4 --- */
+.a4-page {
+    background: white;
+    color: #000000;
+    width: 210mm;
+    padding: 20mm;
+    box-sizing: border-box;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 40px; 
+    z-index: 2;
+    position: relative;
+}
+.page-one { min-height: 297mm; }
+.page-two { min-height: 297mm; }
+
+.header {
+    width: 100%;
+    border-bottom: 2px solid #000;
+    padding-bottom: 10px;
+    margin-bottom: 25px;
+}
+.header h1 { margin: 0; font-size: 24px; text-align: center; letter-spacing: 1px; }
+.student-info { display: flex; justify-content: space-between; margin-top: 15px; font-size: 14px; font-weight: bold; }
+.instructions { font-size: 14px; color: #111; margin-bottom: 20px; line-height: 1.5; text-align: justify; }
+.section-title { font-size: 14px; font-weight: bold; margin-bottom: 10px; text-transform: uppercase; width: 100%; text-align: left;}
+
+/* Tabelas e Encaixes de Letras da Folha */
+.alphabet-table-wrapper { margin: 15px 0 35px 0; width: 100%; }
+.alphabet-table { width: 100%; border-collapse: collapse; text-align: center; }
+.alphabet-table th, .alphabet-table td { border: 1px solid #000; padding: 6px 2px; font-size: 14px; color: black; }
+.alphabet-table th { background-color: #f2f2f2; font-weight: bold; }
+.phrase-answer-zone { width: 100%; margin-top: 45px; border-top: 1px solid #000; padding-top: 20px; }
+.letter-slots { font-size: 22px; line-height: 1; display: flex; flex-wrap: wrap; gap: 15px 2px; }
+
+.slot-container { display: inline-flex; flex-direction: column; align-items: center; width: 32px; }
+.slot-line { width: 100%; height: 30px; border-bottom: 2px solid black; margin-bottom: 4px; }
+.slot-index { font-size: 11px; font-weight: bold; font-family: monospace; color: black; }
+.slot-space { width: 16px; }
+
+/* Grid de Exercícios */
+.questions-container { width: 100%; margin-top: 0; }
+.questions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px 40px; width: 100%; }
+.question-item {
+    font-size: 15px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border: 1px solid #000;
+    padding: 10px;
+    height: 75px;
+    box-sizing: border-box;
+    background: white;
+    color: black;
+}
+.question-text { font-family: 'Courier New', monospace; font-weight: bold; font-size: 14px; }
+.question-bottom { display: flex; justify-content: space-between; align-items: center; }
+.question-id { font-size: 11px; font-weight: bold; }
+.answer-box { border: 1px solid #000; background: white; width: 65px; height: 22px; }
+
+/* --- Regras de Impressão (Garante quebra de página limpa e correta) --- */
+@media print {
+    body { 
+        background: white !important; 
+        color: black !important;
+        padding: 0 !important; 
+        margin: 0 !important;
+        display: block !important;
+    }
+    .no-print-area, .math-bg, .help-popup-container { 
+        display: none !important; 
+    }
+    .a4-page { 
+        box-shadow: none !important; 
+        padding: 15mm 15mm !important; 
+        width: 100% !important; 
+        min-height: auto !important; 
+        margin-bottom: 0 !important;
+        background: white !important;
+        display: block !important;
+    }
+    
+    /* Força estritamente que a página dois inicie em uma nova folha física */
+    .page-two {
+        page-break-before: always !important;
+        break-before: page !important;
+        margin-top: 0 !important;
+    }
+
+    .questions-container { width: 100% !important; }
+    .questions-grid { 
+        display: block !important; 
+        width: 100% !important; 
+    }
+    
+    .question-item {
+        display: inline-block !important;
+        vertical-align: top !important;
+        width: 48% !important;
+        margin-right: 3% !important;
+        margin-bottom: 14px !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        background: white !important;
+    }
+    .question-item:nth-child(2n) { 
+        margin-right: 0 !important; 
+    }
+}
