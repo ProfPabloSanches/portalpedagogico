@@ -21,7 +21,7 @@ document.addEventListener('click', function(event) {
     }
 });
 
-// Auxiliar para gerar operações lineares e retornar o texto e o impacto no valor de forma estrita
+// Auxiliar para gerar operações lineares controladas dentro de blocos isolados (Avançado)
 function generateExtraOperations(currentValue, count) {
     let text = "";
     let val = currentValue;
@@ -38,13 +38,13 @@ function generateExtraOperations(currentValue, count) {
     return { text, val };
 }
 
-// Gerador matemático adaptivo
+// Gerador matemático adaptivo e totalmente debugado
 function generateMathExpression(targetResult) {
     const difficultySelect = document.getElementById('difficulty');
     const difficulty = difficultySelect ? difficultySelect.value : 'medio';
     
     // =================================================================
-    // MODO AVANÇADO: Alta complexidade com chaves, colchetes e parênteses
+    // 1. MODO AVANÇADO: Alta complexidade (Chaves, colchetes, parênteses e milhares)
     // =================================================================
     if (difficulty === 'avancado') {
         const expOptions = [
@@ -118,70 +118,45 @@ function generateMathExpression(targetResult) {
     }
 
     // =================================================================
-    // MODO DIFÍCIL REVISADO: Linear, sem agrupamentos, com Blindagem total
+    // 2. MODO DIFÍCIL: Linear, Alta Precedência Blindada (Até 4 algarismos)
     // =================================================================
     if (difficulty === 'dificil') {
-        // Criamos uma cauda de operações complexas de alta precedência primeiro
         let tokensCauda = [];
         let valorCauda = 0;
 
-        // 1. Sorteamos uma Potência pesada de até 4 algarismos
+        // Bloco 1: Potência acoplada diretamente a uma multiplicação
         const potOptions = [
             { b: 2, e: 10 }, { b: 4, e: 5 }, { b: 5, e: 4 }, { b: 6, e: 4 }, { b: 3, e: 7 }
         ];
         const sorteioPot = potOptions[Math.floor(Math.random() * potOptions.length)];
         const valorPotencia = Math.pow(sorteioPot.b, sorteioPot.e);
         const expoenteMatematico = superscripts[sorteioPot.e.toString()];
-        
-        tokensCauda.push(`+ ${sorteioPot.b}${expoenteMatematico}`);
-        valorCauda += valorPotencia;
+        const multGrande = Math.floor(Math.random() * 3) + 2; 
 
-        // 2. Adicionamos uma Raiz Quadrada grande
+        tokensCauda.push(`+ ${sorteioPot.b}${expoenteMatematico} × ${multGrande}`);
+        valorCauda += (valorPotencia * multGrande);
+
+        // Bloco 2: Raiz Quadrada isolada
         const raizesDificil = [12, 15, 20, 25, 30];
         const raizBase = raizesDificil[Math.floor(Math.random() * raizesDificil.length)];
-        
         tokensCauda.push(`+ √${raizBase * raizBase}`);
         valorCauda += raizBase;
 
-        // 3. Adicionamos uma multiplicação ou bloco controlado de soma/subtração de 3 dígitos
-        if (Math.random() > 0.5) {
-            const multGrande = Math.floor(Math.random() * 3) + 2; // x2, x3 ou x4
-            // Para não quebrar a ordem linear, multiplicamos o termo anterior (a raiz)
-            // Transformamos o token da raiz em uma multiplicação conjunta
-            tokensCauda.pop();
-            tokensCauda.push(`+ √${raizBase * raizBase} × ${multGrande}`);
-            valorCauda += (raizBase * multGrande) - raizBase; // ajusta o valor acumulado da cauda
-        } else {
-            const s = Math.floor(Math.random() * 300) + 100;
-            tokensCauda.push(`- ${s}`);
-            valorCauda -= s;
-        }
+        // Bloco 3: Termos de ajuste lineares pesados
+        const s1 = Math.floor(Math.random() * 300) + 100;
+        tokensCauda.push(`- ${s1}`);
+        valorCauda -= s1;
 
-        // 4. Adicionamos mais uma operação linear simples de 3 algarismos no final
-        const sFinal = Math.floor(Math.random() * 200) + 50;
-        if (Math.random() > 0.5) {
-            tokensCauda.push(`+ ${sFinal}`);
-            valorCauda += sFinal;
-        } else {
-            tokensCauda.push(`- ${sFinal}`);
-            valorCauda -= sFinal;
-        }
+        const s2 = Math.floor(Math.random() * 200) + 50;
+        tokensCauda.push(`+ ${s2}`);
+        valorCauda += s2;
 
-        // --- ENGENHARIA REVERSA BLINDADA PARA O MODO DIFÍCIL ---
-        // Expressão gerada: ValorInicial [Tokens da Cauda] = LetraAlvo
-        // Exemplo: ValorInicial + 1024 + 15 - 100 = 4
-        // ValorInicial + valorCauda = targetResult  =>  ValorInicial = targetResult - valorCauda
-        // Se der negativo, invertemos o sinal do bloco da cauda usando uma estrutura de subtração:
-        // ValorInicial - (Tudo que foi calculado na cauda) = LetraAlvo => ValorInicial = targetResult + valorCauda
-        
-        let stringCorpoCauda = tokensCauda.join(' ');
+        // Engenharia Reversa Injetável na Extrema Esquerda
         let valorInicial = targetResult - valorCauda;
 
         if (valorInicial > 0) {
-            return `${valorInicial} ${stringCorpoCauda}`;
+            return `${valorInicial} ${tokensCauda.join(' ')}`;
         } else {
-            // Se o valor inicial ia dar negativo, nós transformamos a cauda inteira em um bloco subtraído
-            // Para manter a linearidade sem parênteses, trocamos os sinais internos da string manualmente!
             let tokensInvertidos = tokensCauda.map(token => {
                 if (token.startsWith('+')) return token.replace('+', '-');
                 if (token.startsWith('-')) return token.replace('-', '+');
@@ -193,69 +168,64 @@ function generateMathExpression(targetResult) {
     }
 
     // =================================================================
-    // MODOS LINEARES TRADICIONAIS: FÁCIL E MÉDIO
+    // 3. MODOS LINEARES: FÁCIL E MÉDIO (Com Multiplicação/Divisão no Médio)
     // =================================================================
-    let operacoesDisponiveis = difficulty === 'facil' ? ['SOMA', 'SUB'] : ['SOMA', 'SUB', 'MULT', 'DIV'];
-    const totalOps = Math.floor(Math.random() * 2) + 3; 
-    let currentVal = Math.floor(Math.random() * 10) + 5; 
-    let tokens = [`${currentVal}`];
+    let tokens = [];
+    let acumulado = 0;
 
-    for (let i = 0; i < totalOps; i++) {
-        const op = operacoesDisponiveis[Math.floor(Math.random() * operacoesDisponiveis.length)];
+    if (difficulty === 'medio') {
+        const usarOp = Math.random() > 0.5 ? 'MULT' : 'DIV';
 
-        if (op === 'MULT') {
-            const m = Math.floor(Math.random() * 2) + 2; 
-            if (currentVal < 15) {
-                tokens.push(`×`);
-                tokens.push(`${m}`);
-                currentVal *= m;
+        if (usarOp === 'MULT') {
+            const n1 = Math.floor(Math.random() * 8) + 2; 
+            const n2 = Math.floor(Math.random() * 5) + 2; 
+            tokens.push(`( ${n1} × ${n2} )`);
+            acumulado = n1 * n2;
+        } else {
+            const divisor = Math.floor(Math.random() * 6) + 2;  
+            const quociente = Math.floor(Math.random() * 8) + 2; 
+            const dividendo = divisor * quociente;
+            tokens.push(`( ${dividendo} ÷ ${divisor} )`);
+            acumulado = quociente;
+        }
+
+        const totalOpsExtra = Math.floor(Math.random() * 2) + 2;
+        for (let i = 0; i < totalOpsExtra; i++) {
+            const op = Math.random() > 0.5 ? '+' : '-';
+            const num = Math.floor(Math.random() * 20) + 2;
+
+            if (Math.random() > 0.5) {
+                tokens.push(`${op}`);
+                tokens.push(`${num}`);
+                if (op === '+') acumulado += num;
+                else acumulado -= num;
             } else {
-                const s = Math.floor(Math.random() * 5) + 2;
-                tokens.push(`+`);
-                tokens.push(`${s}`);
-                currentVal += s;
-            }
-        } 
-        else if (op === 'DIV') {
-            let divs = [];
-            for (let d = 2; d <= 8; d++) {
-                if (currentVal % d === 0) divs.push(d);
-            }
-            if (divs.length > 0) {
-                const d = divs[Math.floor(Math.random() * divs.length)];
-                tokens.push('÷');
-                tokens.push(`${d}`);
-                currentVal = currentVal / d;
-            } else {
-                const s = Math.floor(Math.random() * 4) + 1;
-                if (currentVal - s > 0) {
-                    tokens.push('-');
-                    tokens.push(`${s}`);
-                    currentVal -= s;
-                }
+                tokens.unshift(`${num}`);
+                tokens.splice(1, 0, `${op}`);
+                if (op === '+') acumulado += num;
+                else acumulado = num - acumulado; 
             }
         }
-        else if (op === 'SUB') {
-            const s = Math.floor(Math.random() * 6) + 2;
-            if (currentVal - s > 2) {
-                tokens.push(`-`);
-                tokens.push(`${s}`);
-                currentVal -= s;
-            } else {
-                tokens.push(`+`);
-                tokens.push(`${s}`);
-                currentVal += s;
-            }
-        } 
-        else { 
-            const s = Math.floor(Math.random() * 7) + 2;
-            tokens.push(`+`);
-            tokens.push(`${s}`);
-            currentVal += s;
+    } else {
+        // MODO FÁCIL: Apenas somas e subtrações puras
+        const nInicial = Math.floor(Math.random() * 15) + 5;
+        tokens.push(`${nInicial}`);
+        acumulado = nInicial;
+
+        const totalOpsFacil = 3;
+        for (let i = 0; i < totalOpsFacil; i++) {
+            const op = Math.random() > 0.5 ? '+' : '-';
+            const num = Math.floor(Math.random() * 10) + 1;
+            
+            tokens.push(`${op}`);
+            tokens.push(`${num}`);
+            if (op === '+') acumulado += num;
+            else acumulado -= num;
         }
     }
-    
-    const ajusteFinal = targetResult - currentVal;
+
+    // Ajuste Final Estrito na Ponta Direita
+    const ajusteFinal = targetResult - acumulado;
     if (ajusteFinal >= 0) {
         tokens.push(`+`);
         tokens.push(`${ajusteFinal}`);
