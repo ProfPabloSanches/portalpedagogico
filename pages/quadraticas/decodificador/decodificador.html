@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Decodificador Matemático</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="help-popup-container">
+        <button class="help-btn" onclick="toggleHelpPopup()">❓ Níveis</button>
+        <div class="help-popup-content" id="helpPopup">
+            <h4>Níveis de Dificuldade:</h4>
+            <ul>
+                <li><strong>Primeiro Grau:</strong> Apenas operações com equações de primeiro grau.</li>
+                <li><strong>Segundo Grau:</strong> Apenas operações com equaçoes de segundo grau.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="math-bg">
+        <div class="formula" style="top: 5%; left: 5%; font-size: 2rem;">f(x) = ax + b</div>
+        <div class="formula" style="top: 15%; right: 10%; font-size: 1.5rem;">P = (x, y)</div>
+        <div class="formula" style="bottom: 20%; left: 8%; font-size: 1.8rem;">∑ (xᵢ - μ)²</div>
+    </div>
+
+    <div class="no-print-area">
+        <h2>✍ ... DECODIFICADOR MATEMÁTICO ...</h2>
+        <h3 class="warning-text"><strong>ATENÇÃO:</strong> Inserir textos muito longos pode ocasionar quebra excessiva de páginas de impressão.</h3>
+        <p>Digite uma palavra ou frase secreta (apenas letras de A a Z e espaços):</p>
+        <input type="text" id="userPhrase" class="input-box" value="DIGITE SUA PALAVRA OU TEXTO AQUI!" placeholder="Ex: ESTUDAR E BOM">
+        
+        <div style="margin-bottom: 20px;">
+            <label for="difficulty" style="color: #94a3b8; font-size: 0.95rem; font-weight: bold; margin-right: 10px;">Nível de Dificuldade:</label>
+            <select id="difficulty">
+    <option value="Primeiro Grau" selected>Primeiro Grau</option>
+    <option value="Segundo Grau">Segundo Grau</option>
+</select>
+        </div>
+        
+        <div class="btn-group">
+            <button class="btn btn-blue" onclick="buildActivity()">🎲 Gerar Atividade</button>
+            <button class="btn btn-green" onclick="window.print()">🖨️ Imprimir / Salvar PDF</button>
+            <button class="btn btn-gray" onclick="document.getElementById('userPhrase').value=''; document.getElementById('userPhrase').focus();">Apagar Tudo</button>
+            <a href="https://profpablosanches.github.io/portalpedagogico/" class="btn btn-home">🏠 Pagina Inicial</a>
+        </div>
+    </div>
+
+    <div class="a4-page page-one">
+        <div class="header">
+            <h1>ATIVIDADE: DECODIFICADOR MATEMÁTICO</h1>
+            <div class="student-info">
+                <span>NOME: ____________________________________________________</span>
+                <span>DATA: ___/___/______</span>
+            </div>
+        </div>
+
+        <div class="instructions">
+            <strong>Instruções:</strong> Resolva cada uma das equações matemáticas referentes as letras das frases. O valor de <strong>x</strong> ou de <strong>delta (Δ)</strong> de cada equação representa a posição de uma letra no alfabeto, conforme a tabela de referência abaixo. Descubra os números, encontre as respectivas letras e complete a frase secreta no campo indicado!
+        </div>
+
+        <div class="alphabet-table-wrapper">
+            <div class="section-title">📋 Tabela de Referência Alfabética (A à Z)</div>
+            <table class="alphabet-table">
+                <tr>
+                    <th>A</th><th>B</th><th>C</th><th>D</th><th>E</th><th>F</th><th>G</th><th>H</th><th>I</th><th>J</th><th>K</th><th>L</th><th>M</th>
+                </tr>
+                <tr>
+                    <td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td><td>8</td><td>9</td><td>10</td><td>11</td><td>12</td><td>13</td>
+                </tr>
+                <tr>
+                    <th>N</th><th>O</th><th>P</th><th>Q</th><th>R</th><th>S</th><th>T</th><th>U</th><th>V</th><th>W</th><th>X</th><th>Y</th><th>Z</th>
+                </tr>
+                <tr>
+                    <td>14</td><td>15</td><td>16</td><td>17</td><td>18</td><td>19</td><td>20</td><td>21</td><td>22</td><td>23</td><td>24</td><td>25</td><td>26</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="phrase-answer-zone">
+            <div class="section-title">✍️ Frase Descoberta</div>
+            <div class="letter-slots" id="answerSlots"></div>
+        </div>
+    </div>
+
+    <div class="a4-page page-two">
+        <div class="questions-container">
+            <div class="section-title">🧮 Equações:</div>
+            <div class="questions-grid" id="mathQuestions"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
