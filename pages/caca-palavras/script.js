@@ -1,42 +1,93 @@
 const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-// Gerador linear puramente randômico SEM PARÊNTESES (4 a 7 operações)
+// Dicionário nativo para os caracteres matemáticos de potência
+const superscripts = {
+    '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹'
+};
+
+function toggleHelpPopup() {
+    const popup = document.getElementById('helpPopup');
+    if (popup) {
+        const isVisible = popup.style.display === 'block';
+        popup.style.display = isVisible ? 'none' : 'block';
+    }
+}
+
+document.addEventListener('click', function(event) {
+    const container = document.querySelector('.help-popup-container');
+    const popup = document.getElementById('helpPopup');
+    if (container && popup && !container.contains(event.target)) {
+        popup.style.display = 'none';
+    }
+});
+
 function generateMathExpression(targetResult) {
-    const operacoesDisponiveis = ['RAIZ', 'POT', 'MULT', 'SOMA', 'SUB'];
+    const difficultySelect = document.getElementById('difficulty');
+    const difficulty = difficultySelect ? difficultySelect.value : 'medio';
     
-    // Sorteia o número total de operações (entre 4 e 7)
-    const totalOps = Math.floor(Math.random() * 4) + 4;
+    let operacoesDisponiveis = [];
+    if (difficulty === 'facil') {
+        operacoesDisponiveis = ['SOMA', 'SUB'];
+    } else if (difficulty === 'medio') {
+        operacoesDisponiveis = ['SOMA', 'SUB', 'MULT', 'DIV'];
+    } else { 
+        operacoesDisponiveis = ['RAIZ', 'POT', 'MULT', 'SOMA', 'SUB', 'DIV'];
+    }
     
-    // Começa com um valor base inicial
-    let currentVal = Math.floor(Math.random() * 5) + 3; // 3 a 7
+    const totalOps = Math.floor(Math.random() * 4) + 4; 
+    let currentVal = Math.floor(Math.random() * 5) + 3; 
     let tokens = [`${currentVal}`];
 
-    // Loop para criar a expressão linearmente (deixa a última para o ajuste final)
     for (let i = 0; i < totalOps - 1; i++) {
-        // Embaralha/sorteia uma operação
         const op = operacoesDisponiveis[Math.floor(Math.random() * operacoesDisponiveis.length)];
 
         if (op === 'RAIZ') {
-            const base = Math.floor(Math.random() * 3) + 2; // 2 a 4
+            const base = Math.floor(Math.random() * 3) + 2; 
             tokens.push(`+`);
             tokens.push(`√${base * base}`);
             currentVal += base;
         } 
         else if (op === 'POT') {
-            const base = Math.floor(Math.random() * 2) + 2; // 2 ou 3
+            const exp = Math.floor(Math.random() * 8) + 2; 
+            let base = 2;
+            if (exp === 2) {
+                base = Math.floor(Math.random() * 4) + 2; 
+            } else if (exp === 3) {
+                base = Math.floor(Math.random() * 2) + 2; 
+            } else {
+                base = 2; 
+            }
+
+            const resultadoPotencia = Math.pow(base, exp);
+            const expoenteMatematico = superscripts[exp.toString()];
+
             tokens.push(`+`);
-            tokens.push(`${base}²`);
-            currentVal += (base * base);
+            tokens.push(`${base}${expoenteMatematico}`);
+            currentVal += resultadoPotencia;
         } 
         else if (op === 'MULT' && currentVal < 25) {
-            // Como não há parênteses, a multiplicação afeta apenas o último termo gerado.
-            // Para manter o controle simples do valor real sem criar árvores complexas,
-            // geramos uma multiplicação direta baseada no valor acumulado atual.
-            const m = Math.floor(Math.random() * 2) + 2; // 2 ou 3
+            const m = Math.floor(Math.random() * 2) + 2; 
             tokens.push(`×`);
             tokens.push(`${m}`);
             currentVal *= m;
         } 
+        else if (op === 'DIV') {
+            let divs = [];
+            for (let d = 2; d <= 6; d++) {
+                if (currentVal % d === 0) divs.push(d);
+            }
+            if (divs.length > 0) {
+                const d = divs[Math.floor(Math.random() * divs.length)];
+                tokens.push('÷');
+                tokens.push(`${d}`);
+                currentVal = Math.floor(currentVal / d);
+            } else {
+                const s = Math.floor(Math.random() * 4) + 2;
+                tokens.push('+');
+                tokens.push(`${s}`);
+                currentVal += s;
+            }
+        }
         else if (op === 'SUB' && currentVal > 10) {
             const s = Math.floor(Math.random() * 5) + 2;
             tokens.push(`-`);
@@ -44,7 +95,6 @@ function generateMathExpression(targetResult) {
             currentVal -= s;
         } 
         else {
-            // Padrão: SOMA
             const s = Math.floor(Math.random() * 6) + 2;
             tokens.push(`+`);
             tokens.push(`${s}`);
@@ -52,7 +102,6 @@ function generateMathExpression(targetResult) {
         }
     }
 
-    // --- AJUSTE FINAL PARA CRAVAR A LETRA CORRETA ---
     const ajuste = targetResult - currentVal;
     if (ajuste >= 0) {
         tokens.push(`+`);
@@ -62,11 +111,27 @@ function generateMathExpression(targetResult) {
         tokens.push(`${Math.abs(ajuste)}`);
     }
 
-    // Retorna todos os elementos juntos separados por espaço, sem nenhum parênteses
+    if (difficulty === 'avancado' && tokens.length >= 7) {
+        let v1 = tokens[0];
+        let op1 = tokens[1];
+        let v2 = tokens[2];
+        let op2 = tokens[3];
+        let v3 = tokens[4];
+        let op3 = tokens[5];
+        let v4 = tokens[6];
+        
+        let blocoAgrupado = `${v1} ${op1} [ ${v2} ${op2} ( ${v3} ${op3} ${v4} ) ]`;
+        
+        let restoTokens = tokens.slice(7);
+        if (restoTokens.length > 0) {
+            return blocoAgrupado + " " + restoTokens.join(' ');
+        }
+        return blocoAgrupado;
+    }
+
     return tokens.join(' ');
 }
 
-// Reconstrói a folha de forma totalmente dinâmica mantendo a formatação HTML anti-corte
 function buildActivity() {
     const textInput = document.getElementById('userPhrase').value.toUpperCase();
     const cleanText = textInput.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Z ]/g, '');
