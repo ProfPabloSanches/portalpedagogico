@@ -4,346 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Decodificador Matemático</title>
-    <style>
-        :root {
-            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
-            --card-bg: rgba(255, 255, 255, 0.06);
-            --card-border: rgba(255, 255, 255, 0.08);
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --accent: #38bdf8;
-            --accent-hover: #0ea5e9;
-            --btn-bg: rgba(255, 255, 255, 0.04);
-            --danger: #ef4444;
-            --success: #2ecc71;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            background: var(--bg-gradient);
-            color: var(--text-main);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            overflow-x: hidden;
-            overflow-y: auto;
-            position: relative;
-            padding: 30px 15px;
-        }
-
-        /* Fundo matemático sutil */
-        .math-bg {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 0;
-            pointer-events: none;
-            overflow: hidden;
-            user-select: none;
-            opacity: 0.02;
-            color: var(--text-main);
-            font-weight: 600;
-        }
-        .formula { position: absolute; white-space: nowrap; }
-
-        /* Painel de Controle Superior */
-        .no-print-area {
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            padding: 24px;
-            border-radius: 16px;
-            margin-bottom: 30px;
-            width: 100%;
-            max-width: 800px;
-            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2);
-            z-index: 10;
-            text-align: center;
-        }
-
-        .no-print-area h2 {
-            font-size: 1.8rem;
-            font-weight: 800;
-            letter-spacing: -0.5px;
-            background: linear-gradient(to right, #fff, var(--accent));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 6px;
-        }
-
-        .no-print-area h3 {
-            background: rgba(239, 68, 68, 0.1);
-            border: 1px solid rgba(239, 68, 68, 0.2);
-            color: #fca5a5;
-            font-size: 0.85rem;
-            padding: 10px;
-            border-radius: 8px;
-            margin: 12px 0;
-            font-weight: 500;
-        }
-
-        .no-print-area p {
-            color: var(--text-muted);
-            font-size: 0.95rem;
-            margin-bottom: 12px;
-        }
-
-        .input-box {
-            width: 100%;
-            max-width: 500px;
-            padding: 12px 16px;
-            background: rgba(0, 0, 0, 0.2);
-            border: 1px solid var(--card-border);
-            border-radius: 10px;
-            color: white;
-            text-align: center;
-            font-size: 1.1rem;
-            font-weight: 700;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            transition: all 0.2s;
-            margin-bottom: 16px;
-        }
-
-        .btn-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            justify-content: center;
-        }
-
-        .btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: 700;
-            font-size: 0.9rem;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            color: #0f172a;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-            gap: 6px;
-        }
-        .btn:hover { transform: translateY(-2px); opacity: 0.95; }
-        .btn-blue { background-color: var(--accent); color: #0f172a; box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3); }
-        .btn-green { background-color: var(--success); color: #0f172a; box-shadow: 0 4px 12px rgba(46, 204, 113, 0.3); }
-        .btn-gray { background-color: rgba(255,255,255,0.1); color: var(--text-main); border: 1px solid var(--card-border); }
-        .btn-home { background-color: rgba(255,255,255,0.05); color: var(--text-muted); border: 1px solid var(--card-border); }
-
-        /* Estilização das Páginas A4 (Visual do App) */
-        .a4-page {
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            width: 100%;
-            max-width: 800px;
-            padding: 40px;
-            border-radius: 20px;
-            margin-bottom: 30px;
-            z-index: 2;
-            box-shadow: 0 15px 35px -10px rgba(0,0,0,0.3);
-            display: flex;
-            flex-direction: column;
-        }
-
-        .header {
-            border-bottom: 2px solid var(--card-border);
-            padding-bottom: 20px;
-            margin-bottom: 24px;
-        }
-
-        .header h1 {
-            font-size: 1.6rem;
-            font-weight: 800;
-            color: white;
-            text-align: center;
-            margin-bottom: 16px;
-        }
-
-        .student-info {
-            display: flex;
-            justify-content: space-between;
-            color: var(--text-muted);
-            font-size: 0.9rem;
-        }
-
-        .instructions {
-            background: rgba(255, 255, 255, 0.02);
-            border-left: 4px solid var(--accent);
-            padding: 15px;
-            border-radius: 0 8px 8px 0;
-            font-size: 0.9rem;
-            line-height: 1.5;
-            color: var(--text-muted);
-            margin-bottom: 30px;
-            text-align: justify;
-        }
-
-        .section-title {
-            font-size: 1rem;
-            font-weight: 700;
-            color: var(--accent);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 14px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        /* Tabelas Alfabéticas */
-        .alphabet-table-wrapper { margin-bottom: 35px; }
-        .alphabet-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 0.95rem; }
-        .alphabet-table th, .alphabet-table td { border: 1px solid var(--card-border); padding: 10px 4px; text-align: center; }
-        .alphabet-table th { background: rgba(56, 189, 248, 0.08); color: var(--accent); }
-        .alphabet-table td { background: rgba(0,0,0,0.1); color: white; font-family: 'Courier New', monospace; font-weight: 700; }
-
-        /* Espaço para a Frase Secreta */
-        .phrase-answer-zone { background: rgba(255, 255, 255, 0.01); border: 1px dashed var(--card-border); padding: 24px; border-radius: 12px; }
-        .letter-slots { display: flex; flex-wrap: wrap; gap: 12px 8px; justify-content: flex-start; }
-        .slot-container { display: inline-flex; flex-direction: column; align-items: center; width: 32px; }
-        .slot-line { width: 100%; height: 36px; border-bottom: 2px solid white; margin-bottom: 4px; }
-        .slot-index { font-size: 0.75rem; color: var(--accent); font-family: 'Courier New', monospace; }
-        .slot-space { width: 16px; }
-
-        /* Grid de Expressões Matemáticas na Web (2 Colunas) */
-        .questions-container { width: 100%; }
-        .questions-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 14px;
-            margin-top: 10px;
-        }
-
-        .question-item {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid var(--card-border);
-            padding: 12px;
-            border-radius: 10px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            height: 85px;
-        }
-        
-        /* Ajuste na Web */
-        .question-text { 
-            font-size: 0.82rem; 
-            font-weight: 700; 
-            color: white; 
-            font-family: 'Courier New', monospace; 
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        
-        .question-bottom { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; border-top: 1px dashed rgba(255,255,255,0.05); padding-top: 6px; }
-        .question-id { font-size: 0.7rem; font-weight: bold; color: var(--text-muted); background: rgba(255,255,255,0.04); padding: 2px 4px; border-radius: 4px; }
-        .answer-box { width: 70px; height: 24px; border: 1px solid var(--card-border); background: rgba(0,0,0,0.3); border-radius: 4px; }
-
-        /* Elemento invisível na web */
-        .page-break { display: none; }
-
-        /* CONFIGURAÇÕES DE IMPRESSÃO - EM DUAS COLUNAS COM FONTE REDUZIDA */
-        @media print {
-            html, body {
-                background: white !important;
-                color: black !important;
-                display: block !important;
-                padding: 0 !important;
-                margin: 0 !important;
-            }
-            
-            .no-print-area, .math-bg { display: none !important; }
-            
-            .a4-page {
-                background: white !important;
-                color: black !important;
-                border: none !important;
-                box-shadow: none !important;
-                padding: 12mm 15mm !important;
-                margin: 0 !important;
-                width: 100% !important;
-                max-width: 100% !important;
-                display: block !important;
-                backdrop-filter: none !important;
-                -webkit-backdrop-filter: none !important;
-            }
-
-            .page-break {
-                display: block !important;
-                height: 0 !important;
-                page-break-after: always !important;
-                break-after: page !important;
-            }
-
-            .header h1 { color: black !important; font-size: 1.4rem !important; }
-            .student-info { color: #333 !important; }
-            .student-info span { border-bottom: 1px solid #000; }
-            
-            .instructions { background: #f5f5f5 !important; border-left: 4px solid #000 !important; color: #222 !important; margin-bottom: 20px !important; }
-            .section-title { color: black !important; border-bottom: 1px solid black; padding-bottom: 2px; }
-            
-            .alphabet-table th { background: #e5e5e5 !important; color: black !important; border: 1px solid black !important; padding: 6px 2px !important; }
-            .alphabet-table td { background: white !important; color: black !important; border: 1px solid black !important; padding: 6px 2px !important; }
-            
-            .phrase-answer-zone { border: 1px dashed black !important; background: white !important; padding: 15px !important; }
-            .slot-line { border-bottom: 2px solid black !important; height: 30px !important; }
-            .slot-index { color: black !important; }
-
-            .questions-grid { 
-                display: block !important; 
-                width: 100% !important;
-                margin-top: 15px !important;
-            }
-            
-            /* Estrutura estável de 2 colunas */
-            .question-item { 
-                display: inline-block !important; 
-                vertical-align: top !important;
-                background: white !important; 
-                border: 1px solid #000 !important; 
-                width: 48% !important; 
-                margin-right: 4% !important;
-                margin-bottom: 14px !important;
-                height: 75px !important; 
-                padding: 10px !important;
-                page-break-inside: avoid !important;
-                break-inside: avoid !important; 
-            }
-            
-            .question-item:nth-child(2n) {
-                margin-right: 0 !important;
-            }
-            
-            /* MODIFICAÇÃO DE FONTE SOLICITADA: Ultra-reduzida e segura para manter linha única */
-            .question-text { 
-                color: black !important; 
-                font-size: 0.72rem !important; 
-                white-space: nowrap !important;
-                overflow: visible !important;
-                font-family: 'Courier New', monospace;
-            }
-
-            .question-id { color: black !important; background: #eee !important; font-size: 0.65rem !important; }
-            .answer-box { border: 1px solid black !important; background: white !important; width: 65px !important; height: 22px !important; }
-        }
-
-        @media (max-width: 480px) { .questions-grid { grid-template-columns: 1fr; } }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
+    <div class="help-popup-container">
+        <button class="help-btn" onclick="toggleHelpPopup()">❓ Níveis</button>
+        <div class="help-popup-content" id="helpPopup">
+            <h4>Níveis de Dificuldade:</h4>
+            <ul>
+                <li><strong>Fácil:</strong> Apenas operações de soma (+) e subtração (-).</li>
+                <li><strong>Médio:</strong> Inclui soma (+), subtração (-), multiplicação (×) e divisão (÷).</li>
+                <li><strong>Difícil:</strong> Adiciona potências (Ex: 2³) e raízes quadradas (√), sem parênteses.</li>
+                <li><strong>Avançado:</strong> Expressões complexas organizadas com parênteses () e colchetes [].</li>
+            </ul>
+        </div>
+    </div>
 
     <div class="math-bg">
         <div class="formula" style="top: 5%; left: 5%; font-size: 2rem;">f(x) = ax + b</div>
@@ -352,10 +28,20 @@
     </div>
 
     <div class="no-print-area">
-        <h2>✍️ Decodificador Matemático</h2>
-        <h3><strong>ATENÇÃO:</strong> Inserir textos muito longos pode ocasionar quebra excessiva de páginas de impressão.</h3>
+        <h2>✍ ... DECODIFICADOR MATEMÁTICO ...</h2>
+        <h3 class="warning-text"><strong>ATENÇÃO:</strong> Inserir textos muito longos pode ocasionar quebra excessiva de páginas de impressão.</h3>
         <p>Digite uma palavra ou frase secreta (apenas letras de A a Z e espaços):</p>
         <input type="text" id="userPhrase" class="input-box" value="DIGITE SUA PALAVRA OU TEXTO AQUI!" placeholder="Ex: ESTUDAR E BOM">
+        
+        <div style="margin-bottom: 20px;">
+            <label for="difficulty" style="color: #94a3b8; font-size: 0.95rem; font-weight: bold; margin-right: 10px;">Nível de Dificuldade:</label>
+            <select id="difficulty" class="input-box select-dark">
+                <option value="facil">Fácil</option>
+                <option value="medio" selected>Médio</option>
+                <option value="dificil">Difícil</option>
+                <option value="avancado">Avançado</option>
+            </select>
+        </div>
         
         <div class="btn-group">
             <button class="btn btn-blue" onclick="buildActivity()">🎲 Gerar Atividade</button>
@@ -365,7 +51,7 @@
         </div>
     </div>
 
-    <div class="a4-page">
+    <div class="a4-page page-one">
         <div class="header">
             <h1>ATIVIDADE: DECODIFICADOR MATEMÁTICO</h1>
             <div class="student-info">
@@ -402,177 +88,13 @@
         </div>
     </div>
 
-    <div class="page-break"></div>
-
-    <div class="a4-page">
+    <div class="a4-page page-two">
         <div class="questions-container">
             <div class="section-title">🧮 Expressões Matemáticas</div>
             <div class="questions-grid" id="mathQuestions"></div>
         </div>
     </div>
 
-    <script>
-        const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
-        // NOVO MOTOR: Sem parênteses fixos e com embaralhamento real
-        function generateMathExpression(targetResult) {
-            const operacoes = ['RAIZ', 'POT', 'MULT', 'SOMA', 'SUB', 'DIV'];
-            const totalOps = Math.floor(Math.random() * 4) + 4; // de 4 a 7 operações
-            
-            let currentVal = Math.floor(Math.random() * 5) + 3; // Valor base inicial: 3 a 7
-            let tokens = [`${currentVal}`];
-            let opsUsadas = new Set();
-
-            for (let i = 0; i < totalOps - 1; i++) {
-                let op = operacoes[Math.floor(Math.random() * operacoes.length)];
-                
-                if (i === totalOps - 2 && opsUsadas.size < 3) {
-                    const restantes = operacoes.filter(o => !opsUsadas.has(o));
-                    op = restantes[Math.floor(Math.random() * restantes.length)];
-                }
-
-                switch (op) {
-                    case 'RAIZ':
-                        const baseRaiz = Math.floor(Math.random() * 3) + 2; 
-                        tokens.push('+');
-                        tokens.push(`√${baseRaiz * baseRaiz}`);
-                        currentVal += baseRaiz;
-                        opsUsadas.add('RAIZ');
-                        break;
-
-                    case 'POT':
-                        const basePot = Math.floor(Math.random() * 2) + 2; 
-                        tokens.push('+');
-                        tokens.push(`${basePot}²`);
-                        currentVal += (basePot * basePot);
-                        opsUsadas.add('POT');
-                        break;
-
-                    case 'MULT':
-                        const m = currentVal < 15 ? (Math.floor(Math.random() * 2) + 2) : 2;
-                        tokens.push('×');
-                        tokens.push(`${m}`);
-                        currentVal *= m;
-                        opsUsadas.add('MULT');
-                        break;
-
-                    case 'DIV':
-                        let divs = [];
-                        for (let d = 2; d <= 6; d++) {
-                            if (currentVal % d === 0) divs.push(d);
-                        }
-                        if (divs.length > 0) {
-                            const d = divs[Math.floor(Math.random() * divs.length)];
-                            tokens.push('÷');
-                            tokens.push(`${d}`);
-                            currentVal = Math.floor(currentVal / d);
-                            opsUsadas.add('DIV');
-                        } else {
-                            const s = Math.floor(Math.random() * 4) + 2;
-                            tokens.push('+');
-                            tokens.push(`${s}`);
-                            currentVal += s;
-                            opsUsadas.add('SOMA');
-                        }
-                        break;
-
-                    case 'SUB':
-                        const sub = Math.floor(Math.random() * 5) + 2;
-                            if (currentVal - sub > 0) {
-                                tokens.push('-');
-                                tokens.push(`${sub}`);
-                                currentVal -= sub;
-                                opsUsadas.add('SUB');
-                    } else {
-                    // Se a subtração fosse dar negativo, faz uma soma com o valor seguro de 'sub'
-                            tokens.push('+');
-                            tokens.push(`${sub}`); 
-                            currentVal += sub;
-                            opsUsadas.add('SOMA');
-                    }
-                    break;
-
-                    case 'SOMA':
-                    default:
-                        const soma = Math.floor(Math.random() * 6) + 2;
-                        tokens.push('+');
-                        tokens.push(`${soma}`);
-                        currentVal += soma;
-                        opsUsadas.add('SOMA');
-                        break;
-                }
-            }
-
-            const ajuste = targetResult - currentVal;
-            if (ajuste >= 0) {
-                tokens.push('+');
-                tokens.push(`${ajuste}`);
-            } else {
-                tokens.push('-');
-                tokens.push(`${Math.abs(ajuste)}`);
-            }
-
-            return tokens.join(' ');
-        }
-
-        function buildActivity() {
-            const textInput = document.getElementById('userPhrase').value.toUpperCase();
-            const cleanText = textInput.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Z ]/g, '');
-
-            if (cleanText.trim().length === 0) {
-                alert("Por favor, digite uma palavra ou frase contendo letras.");
-                return;
-            }
-
-            const questionsGrid = document.getElementById('mathQuestions');
-            const answerSlots = document.getElementById('answerSlots');
-
-            questionsGrid.innerHTML = '';
-            answerSlots.innerHTML = '';
-
-            let questionCount = 1;
-
-            for (let i = 0; i < cleanText.length; i++) {
-                const char = cleanText[i];
-
-                if (char === " ") {
-                    const spaceDiv = document.createElement('div');
-                    spaceDiv.className = 'slot-space';
-                    answerSlots.appendChild(spaceDiv);
-                } else {
-                    const charCode = alphabet.indexOf(char) + 1;
-
-                    if (charCode > 0) {
-                        const expression = generateMathExpression(charCode);
-
-                        const questionItem = document.createElement('div');
-                        questionItem.className = 'question-item';
-
-                        questionItem.innerHTML = `
-                            <div class="question-text">${expression}</div>
-                            <div class="question-bottom">
-                                <div class="question-id">QUESTÃO ${questionCount}</div>
-                                <div class="answer-box"></div>
-                            </div>
-                        `;
-                        questionsGrid.appendChild(questionItem);
-
-                        const slotContainer = document.createElement('div');
-                        slotContainer.className = 'slot-container';
-
-                        slotContainer.innerHTML = `
-                            <div class="slot-line"></div>
-                            <div class="slot-index">${questionCount}</div>
-                        `;
-                        answerSlots.appendChild(slotContainer);
-
-                        questionCount++;
-                    }
-                }
-            }
-        }
-
-        window.onload = buildActivity;
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
