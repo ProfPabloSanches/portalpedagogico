@@ -21,10 +21,52 @@ document.addEventListener('click', function(event) {
     }
 });
 
+// Gerador matemático adaptivo
 function generateMathExpression(targetResult) {
     const difficultySelect = document.getElementById('difficulty');
     const difficulty = difficultySelect ? difficultySelect.value : 'medio';
     
+    // --- MODO AVANÇADO: Contém obrigatoriamente +, -, ×, ÷, √, potências, (), [] e {} ---
+    if (difficulty === 'avancado') {
+        // 1. Núcleo Interno (Parênteses): Potenciação e Divisão Exata
+        // Sorteia expoente de 2 a 9. Para manter o controle pedagógico, base fixa em 2 para expoentes altos.
+        const exp = Math.floor(Math.random() * 8) + 2; 
+        const base = exp <= 3 ? 3 : 2; 
+        const valorPotencia = Math.pow(base, exp);
+        const expoenteMatematico = superscripts[exp.toString()];
+
+        // Criamos uma divisão que resulte em um número inteiro simples (ex: 12 ÷ 3 = 4)
+        const divIdenom = Math.floor(Math.random() * 3) + 2; // 2 a 4
+        const divResult = Math.floor(Math.random() * 3) + 2; // 2 a 4
+        const divNum = divResult * divIdenom;
+
+        // Valor dentro dos parênteses: ( Base^Exp - Num ÷ Denom )
+        const valorParenteses = valorPotencia - divResult;
+
+        // 2. Nível Intermediário (Colchetes): Adiciona a Raiz Quadrada
+        // Sorteia uma raiz exata (√4, √9, √16 ou √25)
+        const raizBase = Math.floor(Math.random() * 4) + 2; // 2 a 5
+        const raizRadicando = raizBase * raizBase; 
+        
+        // Bloco dos Colchetes: [ √Radicando + ( Parênteses ) ]
+        const valorColchetes = raizBase + valorParenteses;
+
+        // 3. Nível Externo (Chaves): Adiciona a Multiplicação
+        const mult = 2; // Multiplicador controlado para o número não estourar
+        const valorChaves = mult * valorColchetes;
+
+        // 4. Ajuste Final de Escopo: Garante que a conta bata exatamente na Letra (1 a 26)
+        const a = targetResult - valorChaves;
+        
+        if (a >= 0) {
+            return `${a} + { ${mult} × [ √${raizRadicando} + ( ${base}${expoenteMatematico} - ${divNum} ÷ ${divIdenom} ) ] }`;
+        } else {
+            const valorInicial = targetResult + valorChaves;
+            return `${valorInicial} - { ${mult} × [ √${raizRadicando} + ( ${base}${expoenteMatematico} - ${divNum} ÷ ${divIdenom} ) ] }`;
+        }
+    }
+
+    // --- MODOS LINEARES: Fácil, Médio e Difícil ---
     let operacoesDisponiveis = [];
     if (difficulty === 'facil') {
         operacoesDisponiveis = ['SOMA', 'SUB'];
@@ -34,7 +76,7 @@ function generateMathExpression(targetResult) {
         operacoesDisponiveis = ['RAIZ', 'POT', 'MULT', 'SOMA', 'SUB', 'DIV'];
     }
     
-    const totalOps = Math.floor(Math.random() * 4) + 4; 
+    const totalOps = Math.floor(Math.random() * 3) + 3; 
     let currentVal = Math.floor(Math.random() * 5) + 3; 
     let tokens = [`${currentVal}`];
 
@@ -48,16 +90,10 @@ function generateMathExpression(targetResult) {
             currentVal += base;
         } 
         else if (op === 'POT') {
-            const exp = Math.floor(Math.random() * 8) + 2; 
+            const exp = Math.floor(Math.random() * 4) + 2; 
             let base = 2;
-            if (exp === 2) {
-                base = Math.floor(Math.random() * 4) + 2; 
-            } else if (exp === 3) {
-                base = Math.floor(Math.random() * 2) + 2; 
-            } else {
-                base = 2; 
-            }
-
+            if (exp === 2) base = Math.floor(Math.random() * 3) + 2;
+            
             const resultadoPotencia = Math.pow(base, exp);
             const expoenteMatematico = superscripts[exp.toString()];
 
@@ -65,7 +101,7 @@ function generateMathExpression(targetResult) {
             tokens.push(`${base}${expoenteMatematico}`);
             currentVal += resultadoPotencia;
         } 
-        else if (op === 'MULT' && currentVal < 25) {
+        else if (op === 'MULT' && currentVal < 20) {
             const m = Math.floor(Math.random() * 2) + 2; 
             tokens.push(`×`);
             tokens.push(`${m}`);
@@ -88,14 +124,14 @@ function generateMathExpression(targetResult) {
                 currentVal += s;
             }
         }
-        else if (op === 'SUB' && currentVal > 10) {
+        else if (op === 'SUB' && currentVal > 15) {
             const s = Math.floor(Math.random() * 5) + 2;
             tokens.push(`-`);
             tokens.push(`${s}`);
             currentVal -= s;
         } 
         else {
-            const s = Math.floor(Math.random() * 6) + 2;
+            const s = Math.floor(Math.random() * 5) + 2;
             tokens.push(`+`);
             tokens.push(`${s}`);
             currentVal += s;
@@ -109,24 +145,6 @@ function generateMathExpression(targetResult) {
     } else {
         tokens.push(`-`);
         tokens.push(`${Math.abs(ajuste)}`);
-    }
-
-    if (difficulty === 'avancado' && tokens.length >= 7) {
-        let v1 = tokens[0];
-        let op1 = tokens[1];
-        let v2 = tokens[2];
-        let op2 = tokens[3];
-        let v3 = tokens[4];
-        let op3 = tokens[5];
-        let v4 = tokens[6];
-        
-        let blocoAgrupado = `${v1} ${op1} [ ${v2} ${op2} ( ${v3} ${op3} ${v4} ) ]`;
-        
-        let restoTokens = tokens.slice(7);
-        if (restoTokens.length > 0) {
-            return blocoAgrupado + " " + restoTokens.join(' ');
-        }
-        return blocoAgrupado;
     }
 
     return tokens.join(' ');
