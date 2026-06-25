@@ -29,7 +29,6 @@ function generateExtraOperations(currentValue, count) {
 
     for (let i = 0; i < count; i++) {
         const op = ops[Math.floor(Math.random() * ops.length)];
-        // No modo avançado, as operações extras usam números de até 3 algarismos para aumentar o desafio
         const num = Math.floor(Math.random() * 250) + 50; 
         
         text += ` ${op} ${num}`;
@@ -45,42 +44,34 @@ function generateMathExpression(targetResult) {
     const difficulty = difficultySelect ? difficultySelect.value : 'medio';
     
     // =================================================================
-    // MODO AVANÇADO: Alta complexidade com números de até 4 algarismos
+    // MODO AVANÇADO: Alta complexidade com chaves, colchetes e parênteses
     // =================================================================
     if (difficulty === 'avancado') {
-        // 1. Primeiro bloco de parênteses: Potenciação maior e Subtração substancial
-        // Sorteia bases e expoentes que resultem em números de 3 a 4 algarismos (Ex: 5⁴ = 625, 3⁶ = 729, 2⁹ = 512)
         const expOptions = [
-            { b: 2, e: 9 },  // 512
-            { b: 3, e: 6 },  // 729
-            { b: 5, e: 4 },  // 625
-            { b: 6, e: 4 },  // 1296
-            { b: 7, e: 3 }   // 343
+            { b: 2, e: 9 }, { b: 3, e: 6 }, { b: 5, e: 4 }, { b: 6, e: 4 }, { b: 7, e: 3 }
         ];
         const sorteioPot = expOptions[Math.floor(Math.random() * expOptions.length)];
         const valorPotencia = Math.pow(sorteioPot.b, sorteioPot.e);
         const expoenteMatematico = superscripts[sorteioPot.e.toString()];
-        const subP1 = Math.floor(Math.random() * 150) + 50; // Subtração de até 3 algarismos
+        const subP1 = Math.floor(Math.random() * 150) + 50; 
         
         const stringP1 = `( ${sorteioPot.b}${expoenteMatematico} - ${subP1} )`;
         const valorP1 = valorPotencia - subP1;
 
-        // 2. Segundo bloco de parênteses: Divisão exata com números de 3 algarismos e Soma alta
-        const divResult = Math.floor(Math.random() * 40) + 20; // Resultado entre 20 e 59
-        const divDenom = Math.floor(Math.random() * 12) + 5;   // Denominador entre 5 e 16
-        const divNum = divResult * divDenom;                   // Dividendo alcança facilmente 3 algarismos
-        const somaP2 = Math.floor(Math.random() * 300) + 100;  // Soma de 3 algarismos
+        const divResult = Math.floor(Math.random() * 40) + 20; 
+        const divDenom = Math.floor(Math.random() * 12) + 5;   
+        const divNum = divResult * divDenom;                   
+        const somaP2 = Math.floor(Math.random() * 300) + 100;  
         
         const stringP2 = `( ${divNum} ÷ ${divDenom} + ${somaP2} )`;
         const valorP2 = divResult + somaP2;
 
-        // 3. Montando o Colchete: Multiplicação com multiplicadores maiores ou Soma de grandes blocos
         const usarMult = Math.random() > 0.5;
         let stringColchetes = "";
         let valorColchetes = 0;
 
         if (usarMult) {
-            const multGrande = Math.floor(Math.random() * 4) + 2; // Multiplicador de 2 a 5
+            const multGrande = Math.floor(Math.random() * 4) + 2; 
             stringColchetes = `[ ${stringP1} × ${multGrande} ]`;
             valorColchetes = valorP1 * multGrande;
         } else {
@@ -88,14 +79,12 @@ function generateMathExpression(targetResult) {
             valorColchetes = valorP1 + valorP2;
         }
 
-        // Extensão de 1 a 3 operações APÓS fechar os Colchetes (Dentro das Chaves)
         const qtdOpsPosColchete = Math.floor(Math.random() * 3) + 1;
         const extraColchete = generateExtraOperations(valorColchetes, qtdOpsPosColchete);
         
         const stringInternaChaves = `${stringColchetes}${extraColchete.text}`;
         let valorInternoChaves = extraColchete.val;
 
-        // 4. Montando as Chaves: Raiz Quadrada de quadrados maiores (Ex: √144, √225, √400)
         const raizesGrandes = [12, 13, 14, 15, 20, 25];
         const raizBase = raizesGrandes[Math.floor(Math.random() * raizesGrandes.length)];
         const raizRadicando = raizBase * raizBase;
@@ -103,11 +92,9 @@ function generateMathExpression(targetResult) {
         let stringChaves = `{ √${raizRadicando} + ${stringInternaChaves} }`;
         let valorChaves = raizBase + valorInternoChaves;
 
-        // Extensão de 1 a 3 operações APÓS fechar as Chaves
         const qtdOpsPosChaves = Math.floor(Math.random() * 3) + 1;
         const extraChaves = generateExtraOperations(0, qtdOpsPosChaves); 
         
-        // --- BLINDAGEM MATEMÁTICA PARA NÚMEROS GRANDES ---
         let y = targetResult;
         let partesCauda = extraChaves.text.trim().split(/\s+/);
         
@@ -120,10 +107,8 @@ function generateMathExpression(targetResult) {
             }
         }
         
-        // O valor inicial absorve o impacto dos milhares, estabilizando a expressão na casa dos 4 algarismos
         let valorInicial = y + valorChaves;
         
-        // Fallback de segurança caso os desvios randômicos gerem números negativos
         if (valorInicial <= 0) {
             valorInicial = Math.abs(valorInicial) + targetResult + valorChaves + 1500;
             return `${valorInicial} - ${stringChaves}${extraChaves.text} - ${valorInicial - targetResult - extraChaves.val - valorChaves}`;
@@ -133,79 +118,107 @@ function generateMathExpression(targetResult) {
     }
 
     // =================================================================
-    // MODOS LINEARES: FÁCIL, MÉDIO E DIFÍCIL
+    // MODO DIFÍCIL REVISADO: Linear, sem agrupamentos, com Blindagem total
     // =================================================================
-    let operacoesDisponiveis = [];
-    if (difficulty === 'facil') {
-        operacoesDisponiveis = ['SOMA', 'SUB'];
-    } else if (difficulty === 'medio') {
-        operacoesDisponiveis = ['SOMA', 'SUB', 'MULT', 'DIV'];
-    } else { // 'dificil'
-        operacoesDisponiveis = ['RAIZ', 'POT', 'MULT', 'SOMA', 'SUB', 'DIV'];
+    if (difficulty === 'dificil') {
+        // Criamos uma cauda de operações complexas de alta precedência primeiro
+        let tokensCauda = [];
+        let valorCauda = 0;
+
+        // 1. Sorteamos uma Potência pesada de até 4 algarismos
+        const potOptions = [
+            { b: 2, e: 10 }, { b: 4, e: 5 }, { b: 5, e: 4 }, { b: 6, e: 4 }, { b: 3, e: 7 }
+        ];
+        const sorteioPot = potOptions[Math.floor(Math.random() * potOptions.length)];
+        const valorPotencia = Math.pow(sorteioPot.b, sorteioPot.e);
+        const expoenteMatematico = superscripts[sorteioPot.e.toString()];
+        
+        tokensCauda.push(`+ ${sorteioPot.b}${expoenteMatematico}`);
+        valorCauda += valorPotencia;
+
+        // 2. Adicionamos uma Raiz Quadrada grande
+        const raizesDificil = [12, 15, 20, 25, 30];
+        const raizBase = raizesDificil[Math.floor(Math.random() * raizesDificil.length)];
+        
+        tokensCauda.push(`+ √${raizBase * raizBase}`);
+        valorCauda += raizBase;
+
+        // 3. Adicionamos uma multiplicação ou bloco controlado de soma/subtração de 3 dígitos
+        if (Math.random() > 0.5) {
+            const multGrande = Math.floor(Math.random() * 3) + 2; // x2, x3 ou x4
+            // Para não quebrar a ordem linear, multiplicamos o termo anterior (a raiz)
+            // Transformamos o token da raiz em uma multiplicação conjunta
+            tokensCauda.pop();
+            tokensCauda.push(`+ √${raizBase * raizBase} × ${multGrande}`);
+            valorCauda += (raizBase * multGrande) - raizBase; // ajusta o valor acumulado da cauda
+        } else {
+            const s = Math.floor(Math.random() * 300) + 100;
+            tokensCauda.push(`- ${s}`);
+            valorCauda -= s;
+        }
+
+        // 4. Adicionamos mais uma operação linear simples de 3 algarismos no final
+        const sFinal = Math.floor(Math.random() * 200) + 50;
+        if (Math.random() > 0.5) {
+            tokensCauda.push(`+ ${sFinal}`);
+            valorCauda += sFinal;
+        } else {
+            tokensCauda.push(`- ${sFinal}`);
+            valorCauda -= sFinal;
+        }
+
+        // --- ENGENHARIA REVERSA BLINDADA PARA O MODO DIFÍCIL ---
+        // Expressão gerada: ValorInicial [Tokens da Cauda] = LetraAlvo
+        // Exemplo: ValorInicial + 1024 + 15 - 100 = 4
+        // ValorInicial + valorCauda = targetResult  =>  ValorInicial = targetResult - valorCauda
+        // Se der negativo, invertemos o sinal do bloco da cauda usando uma estrutura de subtração:
+        // ValorInicial - (Tudo que foi calculado na cauda) = LetraAlvo => ValorInicial = targetResult + valorCauda
+        
+        let stringCorpoCauda = tokensCauda.join(' ');
+        let valorInicial = targetResult - valorCauda;
+
+        if (valorInicial > 0) {
+            return `${valorInicial} ${stringCorpoCauda}`;
+        } else {
+            // Se o valor inicial ia dar negativo, nós transformamos a cauda inteira em um bloco subtraído
+            // Para manter a linearidade sem parênteses, trocamos os sinais internos da string manualmente!
+            let tokensInvertidos = tokensCauda.map(token => {
+                if (token.startsWith('+')) return token.replace('+', '-');
+                if (token.startsWith('-')) return token.replace('-', '+');
+                return token;
+            });
+            valorInicial = targetResult + valorCauda;
+            return `${valorInicial} ${tokensInvertidos.join(' ')}`;
+        }
     }
-    
-    // Configura tamanho de partida do Modo Difícil modificado
-    const totalOps = Math.floor(Math.random() * 2) + 4; // 4 a 5 operações lineares
-    
-    // Se for o nível difícil, o número inicial já começa alto (3 algarismos)
-    let currentVal = difficulty === 'dificil' ? Math.floor(Math.random() * 400) + 200 : Math.floor(Math.random() * 10) + 5;
+
+    // =================================================================
+    // MODOS LINEARES TRADICIONAIS: FÁCIL E MÉDIO
+    // =================================================================
+    let operacoesDisponiveis = difficulty === 'facil' ? ['SOMA', 'SUB'] : ['SOMA', 'SUB', 'MULT', 'DIV'];
+    const totalOps = Math.floor(Math.random() * 2) + 3; 
+    let currentVal = Math.floor(Math.random() * 10) + 5; 
     let tokens = [`${currentVal}`];
 
     for (let i = 0; i < totalOps; i++) {
         const op = operacoesDisponiveis[Math.floor(Math.random() * operacoesDisponiveis.length)];
 
-        if (op === 'RAIZ') {
-            // No difícil, usamos raízes quadradas maiores (Ex: √144 = 12, √400 = 20, √900 = 30)
-            const raizesDificil = [10, 12, 15, 20, 25, 30];
-            const base = difficulty === 'dificil' ? raizesDificil[Math.floor(Math.random() * raizesDificil.length)] : Math.floor(Math.random() * 4) + 2;
-            tokens.push(`+`);
-            tokens.push(`√${base * base}`);
-            currentVal += base; 
-        } 
-        else if (op === 'POT') {
-            // No difícil, potências geram números de até 4 algarismos (Ex: 4⁵ = 1024, 6⁴ = 1296, 2¹⁰ = 1024)
-            let base = 2, exp = 3;
-            if (difficulty === 'dificil') {
-                const potOptions = [
-                    { b: 2, e: 10 }, { b: 4, e: 5 }, { b: 5, e: 4 }, { b: 6, e: 4 }, { b: 3, e: 7 }
-                ];
-                const sorteio = potOptions[Math.floor(Math.random() * potOptions.length)];
-                base = sorteio.b;
-                exp = sorteio.e;
-            } else {
-                exp = Math.floor(Math.random() * 2) + 2;
-                base = exp === 2 ? Math.floor(Math.random() * 3) + 2 : 2;
-            }
-            
-            const resultadoPotencia = Math.pow(base, exp);
-            const expoenteMatematico = superscripts[exp.toString()] || `^${exp}`;
-
-            tokens.push(`+`);
-            tokens.push(`${base}${expoenteMatematico}`);
-            currentVal += resultadoPotencia;
-        } 
-        else if (op === 'MULT') {
-            // Multiplicadores maiores para o modo difícil impulsionarem milhares rápido
-            const m = difficulty === 'dificil' ? Math.floor(Math.random() * 4) + 3 : Math.floor(Math.random() * 2) + 2; 
-            
-            // Permite multiplicar se ainda não tiver estourado 2500 no modo difícil
-            const limiteMult = difficulty === 'dificil' ? 2500 : 15;
-            if (currentVal < limiteMult) {
+        if (op === 'MULT') {
+            const m = Math.floor(Math.random() * 2) + 2; 
+            if (currentVal < 15) {
                 tokens.push(`×`);
                 tokens.push(`${m}`);
                 currentVal *= m;
             } else {
-                const s = Math.floor(Math.random() * 150) + 50;
+                const s = Math.floor(Math.random() * 5) + 2;
                 tokens.push(`+`);
                 tokens.push(`${s}`);
                 currentVal += s;
             }
         } 
         else if (op === 'DIV') {
-            // Varredura dinâmica para encontrar divisores exatos de números grandes
             let divs = [];
-            let maxDiv = difficulty === 'dificil' ? 20 : 8;
-            for (let d = 2; d <= maxDiv; d++) {
+            for (let d = 2; d <= 8; d++) {
                 if (currentVal % d === 0) divs.push(d);
             }
             if (divs.length > 0) {
@@ -214,7 +227,7 @@ function generateMathExpression(targetResult) {
                 tokens.push(`${d}`);
                 currentVal = currentVal / d;
             } else {
-                const s = difficulty === 'dificil' ? Math.floor(Math.random() * 100) + 10 : Math.floor(Math.random() * 4) + 1;
+                const s = Math.floor(Math.random() * 4) + 1;
                 if (currentVal - s > 0) {
                     tokens.push('-');
                     tokens.push(`${s}`);
@@ -223,8 +236,8 @@ function generateMathExpression(targetResult) {
             }
         }
         else if (op === 'SUB') {
-            const s = difficulty === 'dificil' ? Math.floor(Math.random() * 300) + 50 : Math.floor(Math.random() * 6) + 2;
-            if (currentVal - s > 10) {
+            const s = Math.floor(Math.random() * 6) + 2;
+            if (currentVal - s > 2) {
                 tokens.push(`-`);
                 tokens.push(`${s}`);
                 currentVal -= s;
@@ -234,15 +247,14 @@ function generateMathExpression(targetResult) {
                 currentVal += s;
             }
         } 
-        else { // SOMA
-            const s = difficulty === 'dificil' ? Math.floor(Math.random() * 400) + 100 : Math.floor(Math.random() * 7) + 2;
+        else { 
+            const s = Math.floor(Math.random() * 7) + 2;
             tokens.push(`+`);
             tokens.push(`${s}`);
             currentVal += s;
         }
     }
     
-    // Ajuste em engenharia reversa na extrema direita garante o resultado inteiro estável (1-26)
     const ajusteFinal = targetResult - currentVal;
     if (ajusteFinal >= 0) {
         tokens.push(`+`);
